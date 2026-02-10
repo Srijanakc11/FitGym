@@ -1,0 +1,141 @@
+/* --------------------------------------------------
+   HEADER BASE
+-------------------------------------------------- */
+
+.site-header {
+  background: #ff6c1a;
+  padding: 10px 0;
+  border-bottom: 1px solid #e4e4e4;
+}
+
+.nav-container {
+  width: 90%;
+  max-width: 1400px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --------------------------------------------------
+   LOGO
+-------------------------------------------------- */
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.brand-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+/* --------------------------------------------------
+   NAVIGATION
+-------------------------------------------------- */
+
+.navbar {
+  background: transparent;
+  padding: 10px 0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.navbar .nav-links {
+  display: flex;
+  list-style: none;
+  gap: 22px;
+}
+
+.navbar .nav-links li a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: 0.3s ease;
+}
+
+.navbar .nav-links li a:hover,
+.navbar .nav-links li a.active {
+  color: #111;
+}
+
+/* --------------------------------------------------
+   USER DROPDOWN (Login/Signup)
+-------------------------------------------------- */
+
+.user-menu {
+  position: relative;
+  margin-left: 15px;
+}
+
+.user-icon {
+  width: 30px;
+  cursor: pointer;
+  filter: brightness(0) invert(1); /* Make icon white */
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 160px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: none;
+  flex-direction: column;
+  z-index: 50;
+}
+
+.user-dropdown.show {
+  display: flex;
+}
+
+.user-dropdown a {
+  padding: 12px 15px;
+  text-decoration: none;
+  font-size: 14px;
+  color: #333;
+  transition: 0.2s ease;
+}
+
+.user-dropdown a:hover {
+  background: #f3f3f3;
+}
+
+/* --------------------------------------------------
+   MOBILE RESPONSIVE
+-------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .nav-container {
+    flex-wrap: wrap;
+  }
+
+  .navbar .nav-links {
+    gap: 15px;
+  }
+
+  .brand-title {
+    font-size: 24px;
+  }
+
+  .logo-img {
+    width: 30px;
+  }
+}

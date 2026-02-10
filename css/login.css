@@ -1,0 +1,188 @@
+/* ==============================
+   LOGIN PAGE – FITGYM THEME (REDESIGN)
+============================== */
+
+/* Wrapper */
+.login-wrapper {
+  max-width: 400px;
+  width: 90%;
+  margin: 80px auto;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.login-wrapper:hover {
+  transform: translateY(-5px);
+}
+
+/* Title */
+.login-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+  color: #222;
+  letter-spacing: -0.5px;
+}
+
+/* Form layout */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Labels */
+.login-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* Input fields */
+.login-form input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.25s ease;
+  background-color: #fcfcfc;
+}
+
+/* Input focus */
+.login-form input:focus {
+  outline: none;
+  border-color: #ff6c1a;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 108, 26, 0.15);
+}
+
+/* Password Toggle */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover {
+  color: #ff6c1a;
+}
+
+.toggle-password svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Error Message */
+.error {
+  background-color: #ffecec;
+  color: #d93025;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid #ffccba;
+}
+
+/* Forgot password */
+.forgot-link {
+  font-size: 13px;
+  color: #777;
+  text-align: right;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  align-self: flex-end;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: #ff6c1a;
+}
+
+/* Login button */
+.login-btn {
+  background: #ff6c1a;
+  color: #ffffff;
+  padding: 14px;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 6px rgba(255, 108, 26, 0.2);
+}
+
+.login-btn:hover {
+  background: #e85a12;
+  box-shadow: 0 6px 12px rgba(232, 90, 18, 0.3);
+  transform: translateY(-2px);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+/* Signup text */
+.signup-text {
+  margin-top: 25px;
+  font-size: 14px;
+  text-align: center;
+  color: #666;
+}
+
+.signup-text a {
+  color: #ff6c1a;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+  transition: color 0.2s;
+}
+
+.signup-text a:hover {
+  color: #e85a12;
+  text-decoration: underline;
+}
+
+/* ==============================
+   MOBILE RESPONSIVE
+============================== */
+@media (max-width: 480px) {
+  .login-wrapper {
+    width: 95%;
+    margin: 40px auto;
+    padding: 30px 20px;
+  }
+
+  .login-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .login-btn {
+    padding: 12px;
+  }
+}

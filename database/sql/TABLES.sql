@@ -1,0 +1,70 @@
+-- CREATE TABLE users (
+--      email VARCHAR(255) PRIMARY KEY,
+--      name VARCHAR(255),
+--      password varchar(255),
+--      phone (255),
+--      gender(25)
+-- );
+-- CREATE TABLE contacts (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     name VARCHAR(100) NOT NULL,
+--     email VARCHAR(100) NOT NULL,
+--     subject VARCHAR(255),
+--     message TEXT NOT NULL,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+-- CREATE TABLE classes (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     class_name VARCHAR(255) NOT NULL,
+--     class_time VARCHAR(20) NOT NULL,
+--     user_email VARCHAR(255),
+--     FOREIGN KEY (user_email) REFERENCES users(email)
+-- );
+
+-- CREATE TABLE bookings (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     class_slug VARCHAR(50) NOT NULL,
+--     class_name VARCHAR(255) NOT NULL,
+--     trainer_name VARCHAR(255) NOT NULL,
+--     full_name VARCHAR(255) NOT NULL,
+--     email VARCHAR(255) NOT NULL,
+--     contact_number VARCHAR(50) NOT NULL,
+--     preferred_date DATE NOT NULL,
+--     time_slot VARCHAR(50) NOT NULL,
+--     participants INT NOT NULL DEFAULT 1,
+--     payment_method VARCHAR(20) NOT NULL,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+
+-- CREATE TABLE class_catalog (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     class_name VARCHAR(255) NOT NULL,
+--     intensity_level ENUM('low','moderate','high') NOT NULL,
+--     impact_level ENUM('low','medium','high') NOT NULL,
+--     goal_tags VARCHAR(255) NOT NULL,
+--     avg_calories_per_hour INT NOT NULL,
+--     contraindications VARCHAR(255),
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+
+-- INSERT INTO class_catalog (class_name, intensity_level, impact_level, goal_tags, avg_calories_per_hour, contraindications) VALUES
+-- ('Chair Yoga', 'low', 'low', 'recovery', 180, 'none'),
+-- ('Gentle Yoga', 'low', 'low', 'recovery', 200, 'none'),
+-- ('Stretch & Mobility', 'low', 'low', 'recovery', 190, 'none'),
+-- ('Beginner Pilates', 'low', 'low', 'fat_loss', 220, 'none'),
+-- ('Breathwork & Relaxation', 'low', 'low', 'recovery', 150, 'none'),
+-- ('Posture Correction', 'low', 'low', 'recovery', 160, 'none'),
+-- ('Balance Training', 'low', 'low', 'recovery', 180, 'none'),
+-- ('Foam Rolling', 'low', 'low', 'recovery', 140, 'none'),
+-- ('Power Yoga', 'moderate', 'medium', 'fat_loss', 360, 'none'),
+-- ('Bodyweight Strength', 'moderate', 'medium', 'muscle_gain', 400, 'none'),
+-- ('Core Conditioning', 'moderate', 'medium', 'fat_loss', 380, 'none'),
+-- ('Resistance Band Training', 'moderate', 'medium', 'muscle_gain', 360, 'none'),
+-- ('Low-Impact Cardio', 'moderate', 'medium', 'fat_loss', 420, 'none'),
+-- ('Dance Fitness', 'moderate', 'medium', 'fat_loss', 450, 'none'),
+-- ('Functional Training', 'moderate', 'medium', 'muscle_gain', 430, 'none'),
+-- ('HIIT', 'high', 'high', 'fat_loss', 600, 'none'),
+-- ('Bootcamp', 'high', 'high', 'fat_loss', 650, 'none'),
+-- ('Advanced Strength Training', 'high', 'high', 'muscle_gain', 550, 'none'),
+-- ('Spin / Indoor Cycling', 'high', 'high', 'fat_loss', 600, 'none'),
+-- ('Cardio Kickboxing', 'high', 'high', 'fat_loss', 700, 'none');

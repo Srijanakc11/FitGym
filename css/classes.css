@@ -1,0 +1,143 @@
+/* ===============================
+   CLASSES PAGE – PROFESSIONAL UI
+================================ */
+
+:root {
+  --brand: #ff6c1a;
+  --brand-dark: #e85a12;
+  --text-dark: #1f1f1f;
+  --text-muted: #6b6b6b;
+  --bg-light: #f7f7f7;
+  --card-bg: #ffffff;
+}
+
+/* PAGE HEADER */
+.page-header {
+  background: linear-gradient(135deg, #ff6c1a, #ff8a3d);
+  color: #fff;
+  text-align: center;
+  padding: 90px 20px 70px;
+}
+
+.page-header h2 {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.page-header .lead {
+  font-size: 18px;
+  opacity: 0.95;
+  max-width: 720px;
+  margin: auto;
+}
+.view-btn {
+  text-decoration: none;
+  font-weight: 600;
+  color: #ff6c1a;
+}
+
+.view-btn:hover {
+  color: #e85a12;
+}
+
+/* SECTION */
+.classes-section {
+  background: var(--bg-light);
+  padding: 80px 0;
+}
+
+/* GRID */
+.class-grid {
+  width: 90%;
+  max-width: 1300px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 2fr));
+  gap: 40px;
+}
+
+/* CARD */
+.class-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.class-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* IMAGE */
+.class-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+/* CONTENT */
+.card-content {
+  padding: 25px 24px 28px;
+  text-decoration: none !important;
+}
+
+.card-content h3 {
+  font-size: 23px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.category {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.desc {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+/* VIEW BUTTON */
+.view-btn {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brand);
+  position: relative;
+}
+
+.view-btn::after {
+  content: "→";
+  margin-left: 6px;
+  transition: transform 0.3s ease;
+}
+
+.class-card:hover .view-btn::after {
+  transform: translateX(6px);
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .page-header h2 {
+    font-size: 34px;
+  }
+
+  .class-card img {
+    height: 200px;
+  }
+}

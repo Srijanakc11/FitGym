@@ -1,0 +1,396 @@
+/* --------------------------------------------------
+   Global Styles
+-------------------------------------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    "Poppins",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    sans-serif;
+  background: #f9f9fb;
+  color: #222;
+  line-height: 1.7;
+}
+
+.container {
+  width: min(90%, 1200px);
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------
+   Hero Section
+-------------------------------------------------- */
+.hero {
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("../pictures/workout.jpg") center/cover no-repeat;
+  text-align: center;
+  padding: 150px 20px;
+  color: white;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.hero p {
+  font-size: 1.3rem;
+  max-width: 650px;
+  margin: 0 auto 25px;
+  opacity: 0.9;
+}
+
+.btn {
+  display: inline-block;
+  background: #ff6c1a;
+  color: #fff;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.btn:hover {
+  background: #e85f14;
+}
+
+/* --------------------------------------------------
+   Featured Classes
+-------------------------------------------------- */
+.featured-classes {
+  padding: 80px 0;
+  text-align: center;
+}
+
+.featured-classes h2 {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.class-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 35px;
+  margin-top: 40px;
+}
+
+.class-item {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.class-item:hover {
+  transform: translateY(-5px);
+}
+
+.class-item img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.class-item h3 {
+  margin: 18px 0 10px;
+  color: #ff6c1a;
+  font-size: 1.4rem;
+}
+
+/* ===============================
+   RECOMMENDATION TEASER
+================================ */
+.recommend-teaser {
+  padding: 50px 0;
+  background: #fff7f1;
+  text-align: center;
+}
+
+.recommend-teaser h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+.recommend-teaser p {
+  color: #666;
+  margin: 0 auto 18px;
+  max-width: 620px;
+}
+/* ===============================
+   BMI CALCULATOR SECTION
+================================ */
+.bmi-section {
+  padding: 80px 0;
+  text-align: center;
+}
+
+.bmi-section h2 {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.bmi-section p {
+  font-size: 1rem;
+  color: #666;
+  max-width: 650px;
+  margin: 0 auto 40px;
+}
+
+.bmi-wrapper {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 35px;
+  width: min(90%, 1200px);
+  margin: 0 auto;
+}
+
+.bmi-form {
+  background: white;
+  padding: 35px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.bmi-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.bmi-form input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 2px solid #111;
+  font-size: 1rem;
+  transition: 0.25s ease;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.04) inset;
+}
+
+.bmi-form input:focus {
+  outline: none;
+  border-color: #ff6c1a;
+  box-shadow: 0 0 0 3px rgba(255, 108, 26, 0.1);
+}
+
+.bmi-result {
+  background: white;
+  padding: 35px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bmi-result h3 {
+  font-size: 1.4rem;
+  color: #ff6c1a;
+  margin-bottom: 15px;
+}
+
+#bmiValue {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+#bmiStatus {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .bmi-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------
+   Testimonials
+-------------------------------------------------- */
+.testimonials {
+  padding: 70px 0;
+  background: #f7f7f7;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: #111;
+}
+
+.slider-wrapper {
+  width: 100%;
+  max-width: 750px;
+  margin: auto;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.slider {
+  display: flex;
+  width: 100%;
+  transition: transform 0.8s ease-in-out;
+}
+
+.slide {
+  min-width: 100%;
+  padding: 35px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.stars {
+  color: #f8c300;
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+.message {
+  font-size: 17px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+.author {
+  font-weight: 700;
+  color: #444;
+}
+
+.dots {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.dot {
+  height: 12px;
+  width: 12px;
+  background: #ccc;
+  display: inline-block;
+  border-radius: 50%;
+  margin: 0 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.dot.active {
+  background: #555;
+  transform: scale(1.2);
+}
+
+/* --------------------------------------------------
+   Footer
+-------------------------------------------------- */
+.footer {
+  background: #111;
+  color: #eee;
+  padding: 50px 20px 20px;
+  margin-top: 50px;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 35px;
+}
+
+.footer-section h3,
+.footer-section h4 {
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.footer-section p,
+.footer-section li {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.contact-info li,
+.quick-links li,
+.classes-links li {
+  margin-bottom: 8px;
+  list-style: none;
+}
+
+.footer-section a {
+  color: #ddd;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.footer-section a:hover {
+  color: #f8c300; /* golden effect */
+}
+
+.map-section iframe {
+  width: 100%;
+  height: 200px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding: 15px 0;
+  margin-top: 25px;
+  border-top: 1px solid #444;
+  font-size: 14px;
+}
+
+/* --------------------------------------------------
+   Responsive
+-------------------------------------------------- */
+@media (max-width: 768px) {
+  .navbar ul {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .hero {
+    padding: 100px 20px;
+  }
+
+  .class-list {
+    grid-template-columns: 1fr;
+  }
+}

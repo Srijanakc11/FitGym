@@ -1,0 +1,157 @@
+/* ================================
+   SIGNUP PAGE – FitGym
+================================ */
+
+.page-content {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 15px;
+    background: #f5f7fa;
+}
+
+.signup-wrapper {
+    background: #ffffff;
+    width: 100%;
+    max-width: 420px;
+    padding: 35px 30px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    animation: fadeUp 0.6s ease;
+}
+
+.signup-wrapper h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 28px;
+    color: #222;
+}
+
+/* ================================
+   FORM
+================================ */
+
+.signup-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-form label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    margin-top: 12px;
+    color: #333;
+}
+
+.signup-form input,
+.signup-form select {
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #111;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.04) inset;
+}
+
+.signup-form input:focus,
+.signup-form select:focus {
+    outline: none;
+    border-color: #ff5e14;
+    box-shadow: 0 0 0 2px rgba(255, 94, 20, 0.2);
+}
+
+/* ================================
+   BUTTON
+================================ */
+
+.signup-btn {
+    margin-top: 22px;
+    padding: 13px;
+    background: #ff5e14;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.signup-btn:hover {
+    background: #e14f0d;
+    transform: translateY(-1px);
+}
+
+/* ================================
+   MESSAGES
+================================ */
+
+.error {
+    background: #ffe0e0;
+    color: #b00020;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.success {
+    background: #e6f7e9;
+    color: #1e7f34;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* ================================
+   LOGIN LINK
+================================ */
+
+.login-text {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 14px;
+}
+
+.login-text a {
+    color: #ff5e14;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-text a:hover {
+    text-decoration: underline;
+}
+
+/* ================================
+   ANIMATION
+================================ */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 480px) {
+    .signup-wrapper {
+        padding: 25px 20px;
+    }
+
+    .signup-wrapper h2 {
+        font-size: 24px;
+    }
+}
