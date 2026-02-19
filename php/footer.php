@@ -11,7 +11,7 @@
 
             <ul class="contact-info">
                 <li><strong>📍 Address:</strong> Lalitpur, Nepal</li>
-                <li><strong>📞 Phone:</strong> +977-9800000000</li>
+                <li><strong>📞 Phone:</strong> +977-9845673217</li>
                 <li><strong>📧 Email:</strong> info@fitgymcenter.com</li>
             </ul>
         </div>

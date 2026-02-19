@@ -70,7 +70,6 @@ if (!$booking) {
 
             <div class="actions">
                 <a class="primary-btn" href="/fitgym/php/classes.php">Browse Classes</a>
-                <a class="secondary-btn" href="/fitgym/php/book_class.php?class=<?= htmlspecialchars($booking['class_slug']) ?>">Book Again</a>
             </div>
         </div>
     </section>

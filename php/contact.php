@@ -58,9 +58,9 @@ include("database.php");
 
         <ul>
             <li><strong>📍 Location:</strong> Lalitpur, Nepal</li>
-            <li><strong>📞 Phone:</strong> +977-9800000000</li>
+            <li><strong>📞 Phone:</strong> +977-9845673217</li>
             <li><strong>📧 Email:</strong> info@fitgymcenter.com</li>
-            <li><strong>🕒 Hours:</strong> 5 AM – 10 PM</li>
+            <li><strong>🕒 Hours:</strong> 5 AM–10 PM</li>
         </ul>
 
         <img src="../pictures/contact-vector.png" alt="Contact Illustration" class="info-img">
