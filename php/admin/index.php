@@ -12,17 +12,17 @@ $monthlyBookings = $conn ? (int)$conn->query("SELECT COUNT(*) AS c FROM bookings
 ?>
 
 <div class="grid-4">
-    <div class="card"><h3>Total Users</h3><strong><?= esc($totalUsers) ?></strong></div>
-    <div class="card"><h3>Total Trainers</h3><strong><?= esc($totalTrainers) ?></strong></div>
-    <div class="card"><h3>Total Classes</h3><strong><?= esc($totalClasses) ?></strong></div>
-    <div class="card"><h3>Total Bookings</h3><strong><?= esc($totalBookings) ?></strong></div>
+    <a class="card card-link" href="/fitgym/php/admin/users.php"><h3>Total Users</h3><strong><?= esc($totalUsers) ?></strong></a>
+    <a class="card card-link" href="/fitgym/php/admin/trainers.php"><h3>Total Trainers</h3><strong><?= esc($totalTrainers) ?></strong></a>
+    <a class="card card-link" href="/fitgym/php/admin/classes.php"><h3>Total Classes</h3><strong><?= esc($totalClasses) ?></strong></a>
+    <a class="card card-link" href="/fitgym/php/admin/bookings.php"><h3>Total Bookings</h3><strong><?= esc($totalBookings) ?></strong></a>
 </div>
 
 <div class="grid-4">
-    <div class="card"><h3>Active Programs</h3><strong><?= esc($activePrograms) ?></strong></div>
-    <div class="card"><h3>Today's Bookings</h3><strong><?= esc($todayBookings) ?></strong></div>
-    <div class="card"><h3>Weekly Bookings</h3><strong><?= esc($weeklyBookings) ?></strong></div>
-    <div class="card"><h3>Monthly Bookings</h3><strong><?= esc($monthlyBookings) ?></strong></div>
+    <a class="card card-link" href="/fitgym/php/admin/classes.php"><h3>Active Programs</h3><strong><?= esc($activePrograms) ?></strong></a>
+    <a class="card card-link" href="/fitgym/php/admin/bookings.php"><h3>Today's Bookings</h3><strong><?= esc($todayBookings) ?></strong></a>
+    <a class="card card-link" href="/fitgym/php/admin/reports.php"><h3>Weekly Bookings</h3><strong><?= esc($weeklyBookings) ?></strong></a>
+    <a class="card card-link" href="/fitgym/php/admin/reports.php"><h3>Monthly Bookings</h3><strong><?= esc($monthlyBookings) ?></strong></a>
 </div>
 
 <?php require_once __DIR__ . '/partials/footer.php'; ?>

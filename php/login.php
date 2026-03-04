@@ -69,7 +69,14 @@ include("../includes/header.php");
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password" aria-controls="password" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M12 5C6 5 2.2 10.1 2 10.4a1 1 0 0 0 0 1.2C2.2 11.9 6 17 12 17s9.8-5.1 10-5.4a1 1 0 0 0 0-1.2C21.8 10.1 18 5 12 5Zm0 10c-4.1 0-7.1-3.1-7.9-4 .8-.9 3.8-4 7.9-4 4.1 0 7.1 3.1 7.9 4-.8.9-3.8 4-7.9 4Zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn-submit">Login</button>
@@ -85,6 +92,22 @@ include("../includes/header.php");
     </div>
 
 </main>
+
+<script>
+    (function () {
+        const passwordInput = document.getElementById('password');
+        const toggleBtn = document.getElementById('password-toggle');
+        if (!passwordInput || !toggleBtn) return;
+
+        toggleBtn.addEventListener('click', function () {
+            const show = passwordInput.type === 'password';
+            passwordInput.type = show ? 'text' : 'password';
+            toggleBtn.setAttribute('aria-pressed', String(show));
+            toggleBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            toggleBtn.classList.toggle('is-visible', show);
+        });
+    })();
+</script>
 
 <?php
 include("../includes/footer.php");

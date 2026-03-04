@@ -7,6 +7,8 @@
   --text: #1d1d1d;
   --muted: #666;
   --shadow: 0 14px 30px rgba(17, 17, 17, 0.08);
+  --line: #cdb9ab;
+  --line-strong: #bda493;
 }
 
 * {
@@ -60,13 +62,22 @@ body {
   text-decoration: none;
   padding: 10px 12px;
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.03);
   transition: 0.2s ease;
   font-size: 0.95rem;
+}
+
+.admin-nav a.active {
+  color: #fff;
+  border-color: rgba(255, 108, 26, 0.8);
+  background: rgba(255, 108, 26, 0.22);
 }
 
 .admin-nav a:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .admin-main {
@@ -118,6 +129,12 @@ body {
   padding: 28px 30px 40px;
 }
 
+.admin-content h2 {
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -130,7 +147,7 @@ body {
   padding: 18px;
   border-radius: 16px;
   box-shadow: var(--shadow);
-  border: 1px solid rgba(255, 108, 26, 0.08);
+  border: 2px solid var(--line);
 }
 
 .card h3 {
@@ -143,25 +160,55 @@ body {
   font-size: 1.4rem;
 }
 
+.card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.card-link:hover {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+}
+
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: #fff;
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow);
+  border: 2px solid var(--line);
 }
 
 .table th,
 .table td {
   padding: 12px 14px;
-  border-bottom: 1px solid #f0e6df;
+  border-bottom: 1px solid var(--line-strong);
+  border-right: 1px solid var(--line-strong);
   text-align: left;
   font-size: 0.95rem;
 }
 
 .table th {
   background: #fff2e8;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.table th:last-child,
+.table td:last-child {
+  border-right: none;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover td {
+  background: #fffaf5;
 }
 
 .badge {
@@ -205,7 +252,17 @@ body {
 .form-grid textarea {
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px var(--orange-soft);
 }
 
 .btn-primary {
@@ -221,7 +278,7 @@ body {
 
 .btn-secondary {
   background: #fff;
-  border: 1px solid #ddd;
+  border: 1px solid var(--line-strong);
   padding: 8px 12px;
   border-radius: 10px;
   cursor: pointer;
@@ -233,6 +290,7 @@ body {
   border-radius: 10px;
   margin-bottom: 12px;
   color: #c75a0a;
+  border: 1px solid #ffd9bf;
 }
 
 .auth-page {
