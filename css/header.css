@@ -1,141 +1,218 @@
-/* --------------------------------------------------
-   HEADER BASE
--------------------------------------------------- */
-
-.site-header {
-  background: #ff6c1a;
-  padding: 10px 0;
-  border-bottom: 1px solid #e4e4e4;
-}
-
-.nav-container {
-  width: 90%;
-  max-width: 1400px;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* --------------------------------------------------
-   LOGO
--------------------------------------------------- */
-
-.logo-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-img {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-}
-
-.brand-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #fff;
-  margin: 0;
-}
-
-/* --------------------------------------------------
-   NAVIGATION
--------------------------------------------------- */
-
-.navbar {
-  background: transparent;
-  padding: 10px 0;
+.fg-site-header {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 40;
+  background: rgba(17, 17, 17, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.14);
 }
 
-.navbar .nav-links {
+.fg-nav-shell {
+  width: min(92%, 1240px);
+  margin: 0 auto;
+  min-height: 76px;
   display: flex;
-  list-style: none;
-  gap: 22px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-.navbar .nav-links li a {
-  color: #ffffff;
+.fg-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   text-decoration: none;
-  font-size: 17px;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: 0.3s ease;
+  min-width: 0;
 }
 
-.navbar .nav-links li a:hover,
-.navbar .nav-links li a.active {
+.fg-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 8px 18px rgba(255, 108, 26, 0.22);
+  flex-shrink: 0;
+}
+
+.fg-brand-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fg-brand-copy strong {
+  color: #fff;
+  font-size: 1.08rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.fg-brand-copy small {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.fg-nav-toggle {
+  display: none;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  padding: 0;
+}
+
+.fg-nav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 4px auto;
+  background: #fff;
+  border-radius: 999px;
+}
+
+.fg-nav-panel {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fg-primary-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fg-nav-link {
+  color: rgba(255, 255, 255, 0.84);
+  text-decoration: none;
+  font-size: 0.96rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 999px;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.fg-nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.fg-nav-link.is-active {
+  background: #ff6c1a;
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(255, 108, 26, 0.24);
+}
+
+.fg-account-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fg-account-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 10px 16px;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.fg-account-link:hover {
+  transform: translateY(-1px);
+}
+
+.fg-account-link.is-primary {
+  background: #fff;
   color: #111;
 }
 
-/* --------------------------------------------------
-   USER DROPDOWN (Login/Signup)
--------------------------------------------------- */
-
-.user-menu {
-  position: relative;
-  margin-left: 15px;
+.fg-account-link.is-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  background: transparent;
 }
 
-.user-icon {
-  width: 30px;
-  cursor: pointer;
-  filter: brightness(0) invert(1); /* Make icon white */
-}
-
-.user-dropdown {
-  position: absolute;
-  top: 40px;
-  right: 0;
-  width: 160px;
-  background: #ffffff;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: none;
-  flex-direction: column;
-  z-index: 50;
-}
-
-.user-dropdown.show {
-  display: flex;
-}
-
-.user-dropdown a {
-  padding: 12px 15px;
-  text-decoration: none;
-  font-size: 14px;
-  color: #333;
-  transition: 0.2s ease;
-}
-
-.user-dropdown a:hover {
-  background: #f3f3f3;
-}
-
-/* --------------------------------------------------
-   MOBILE RESPONSIVE
--------------------------------------------------- */
-
-@media (max-width: 768px) {
-  .nav-container {
+@media (max-width: 900px) {
+  .fg-nav-shell {
+    min-height: 72px;
+    position: relative;
     flex-wrap: wrap;
+    gap: 16px;
+    padding: 12px 0;
   }
 
-  .navbar .nav-links {
-    gap: 15px;
+  .fg-nav-toggle {
+    display: inline-block;
+    margin-left: auto;
   }
 
-  .brand-title {
-    font-size: 24px;
+  .fg-nav-panel {
+    width: 100%;
+    flex: 0 0 100%;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 8px 0 4px;
   }
 
-  .logo-img {
-    width: 30px;
+  .fg-nav-panel.is-open {
+    display: flex;
+  }
+
+  .fg-primary-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fg-nav-link {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  .fg-account-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fg-account-link {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .fg-nav-shell {
+    width: min(94%, 1240px);
+  }
+
+  .fg-brand-copy small {
+    display: none;
+  }
+
+  .fg-brand-copy strong {
+    font-size: 1rem;
+  }
+
+  .fg-brand-mark {
+    width: 38px;
+    height: 38px;
   }
 }

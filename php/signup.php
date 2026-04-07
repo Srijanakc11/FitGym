@@ -1,10 +1,39 @@
 <?php
-session_start();
-include("db.php");
+require_once __DIR__ . '/auth_common.php';
+require_once __DIR__ . '/dynamic_content.php';
 
 $error = "";
 $success = "";
-define('BASE_URL', '/fitgym');
+$nextPath = trim((string)($_GET['next'] ?? $_POST['next'] ?? ''));
+
+if (!function_exists('fitgym_signup_redirect_target')) {
+    function fitgym_signup_redirect_target(string $candidate): string
+    {
+        $candidate = trim($candidate);
+        if ($candidate === '' || str_contains($candidate, "\r") || str_contains($candidate, "\n")) {
+            return '';
+        }
+
+        $parts = parse_url($candidate);
+        if ($parts === false) {
+            return '';
+        }
+        if (isset($parts['scheme']) || isset($parts['host'])) {
+            return '';
+        }
+        if (!str_starts_with($candidate, '/')) {
+            return '';
+        }
+
+        return $candidate;
+    }
+}
+
+$nextPath = fitgym_signup_redirect_target($nextPath);
+
+if (fitgym_current_role() !== null) {
+    fitgym_redirect($nextPath !== '' ? $nextPath : fitgym_url('/index.php'));
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
@@ -14,11 +43,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $phone    = trim($_POST["phone"]);
     $gender   = $_POST["gender"];
 
-    // Hash password
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    // Check if email exists
-    $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $check = $conn->prepare("SELECT id FROM accounts WHERE email = ? LIMIT 1");
     $check->bind_param("s", $email);
     $check->execute();
     $check->store_result();
@@ -27,12 +54,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Email already exists!";
     } else {
         $stmt = $conn->prepare(
-            "INSERT INTO users (name, email, password, phone, gender)
-             VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO accounts (role, name, email, login_code, password_hash, phone, gender, qualification_status, active, legacy_source, legacy_id)
+             VALUES ('client', ?, ?, ?, ?, ?, ?, 'verified', 1, NULL, NULL)"
         );
         $stmt->bind_param(
-            "sssss",
+            "ssssss",
             $name,
+            $email,
             $email,
             $hashedPassword,
             $phone,
@@ -40,11 +68,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if ($stmt->execute()) {
-            $success = "Account created successfully! You can login now.";
+            $accountId = (int)$stmt->insert_id;
+            fitgym_login_user('client', $accountId, $name, $email);
+            fitgym_redirect($nextPath !== '' ? $nextPath : fitgym_url('/index.php'));
         } else {
             $error = "Something went wrong. Try again.";
         }
+        $stmt->close();
     }
+    $check->close();
 }
 ?>
 
@@ -55,13 +87,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <title>Create Account | FitGym</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/pictures/favicon.png">
+    <link rel="icon" type="image/png" href="<?= fitgym_esc(fitgym_asset_url('/pictures/favicon.png')) ?>">
 
 
-    <link rel="stylesheet" href="<?= BASE_URL ?>/css/signup.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/css/index.css">
+    <link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/signup.css')) ?>">
+    <link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/header.css')) ?>">
+    <link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/footer.css')) ?>">
+    <link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/index.css')) ?>">
 </head>
 
 <body>
@@ -83,7 +115,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div class="success"><?= $success ?></div>
         <?php endif; ?>
 
-        <form method="POST" class="signup-form">
+        <form method="POST" action="<?= fitgym_esc(fitgym_url('/php/signup.php')) ?>" class="signup-form">
+            <?php if ($nextPath !== ''): ?>
+                <input type="hidden" name="next" value="<?= fitgym_esc($nextPath) ?>">
+            <?php endif; ?>
+
             <div class="input-group">
                 <label>Name</label>
                 <input type="text" name="name" placeholder="John Doe" required>
@@ -128,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <p class="login-text">
             Already have an account?
-            <a href="login.php">Login</a>
+            <a href="<?= fitgym_esc(fitgym_url('/php/login.php') . ($nextPath !== '' ? '?next=' . rawurlencode($nextPath) : '')) ?>">Login</a>
         </p>
     </div>
 </main>

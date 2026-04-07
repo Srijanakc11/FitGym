@@ -1,58 +1,57 @@
+<?php
+require_once __DIR__ . '/dynamic_content.php';
 
-<link rel="stylesheet" href="../css/footer.css">
+$siteName = fitgym_setting('site_name', 'FitGym Center PVT LTD');
+$footerTagline = fitgym_setting('footer_tagline', 'Your trusted partner for strength, wellness, and transformation.');
+$footerAddress = fitgym_setting('contact_address', 'Lalitpur, Nepal');
+$footerPhone = fitgym_setting('contact_phone', '+977-9845673217');
+$footerEmail = fitgym_setting('contact_email', 'info@fitgymcenter.com');
+$mapEmbedUrl = fitgym_setting('footer_map_embed_url', 'https://www.google.com/maps?q=Lalitpur,+Nepal&output=embed');
+$copyrightText = fitgym_setting('footer_copyright_text', 'Copyright ' . date('Y') . ' ' . $siteName . ' | All Rights Reserved');
+
+$quickLinks = [
+    ['label' => 'Home', 'url' => fitgym_url('/index.php')],
+    ['label' => 'About Us', 'url' => fitgym_url('/php/about.php')],
+    ['label' => 'Classes', 'url' => fitgym_url('/php/classes.php')],
+    ['label' => 'Contact', 'url' => fitgym_url('/php/contact.php')],
+];
+?>
+
+<link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/footer.css')) ?>">
 
 <footer class="footer">
     <div class="footer-container">
-
-        <!-- Brand & Contact -->
         <div class="footer-section">
-            <h3>FitGym Center PVT LTD</h3>
-            <p>Your trusted partner for strength, wellness, and transformation.</p>
+            <h3><?= fitgym_esc($siteName) ?></h3>
+            <p><?= fitgym_esc($footerTagline) ?></p>
 
             <ul class="contact-info">
-                <li><strong>📍 Address:</strong> Lalitpur, Nepal</li>
-                <li><strong>📞 Phone:</strong> +977-9845673217</li>
-                <li><strong>📧 Email:</strong> info@fitgymcenter.com</li>
+                <li><strong>Address:</strong> <?= fitgym_esc($footerAddress) ?></li>
+                <li><strong>Phone:</strong> <?= fitgym_esc($footerPhone) ?></li>
+                <li><strong>Email:</strong> <?= fitgym_esc($footerEmail) ?></li>
             </ul>
         </div>
 
-        <!-- Quick Links -->
         <div class="footer-section">
             <h4>Quick Links</h4>
             <ul class="quick-links">
-                <li><a href="../php/index.php">🏠 Home</a></li>
-                <li><a href="#">ℹ️ About Us</a></li>
-                <li><a href="#">💳 Membership Plans</a></li>
-                <li><a href="#">👟 Trainers</a></li>
-                <li><a href="/fitgym/php/contact.php">📩 Contact</a></li>
+                <?php foreach ($quickLinks as $link): ?>
+                    <?php $label = trim((string)($link['label'] ?? '')); ?>
+                    <?php $url = trim((string)($link['url'] ?? '#')); ?>
+                    <?php if ($label !== ''): ?>
+                        <li><a href="<?= fitgym_esc($url) ?>"><?= fitgym_esc($label) ?></a></li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </ul>
         </div>
 
-        <!-- Classes -->
-        <div class="footer-section">
-            <h4>Our Classes</h4>
-            <ul class="classes-links">
-                <li><a href="/fitgym/php/classes.php">🧘 Yoga</a></li>
-                <li><a href="/fitgym/php/classes.php">💃 Zumba</a></li>
-                <li><a href="/fitgym/php/classes.php">🏋️ Strength Training</a></li>
-                <li><a href="/fitgym/php/classes.php">🔥 Cardio Fitness</a></li>
-                <li><a href="/fitgym/php/classes.php">🥊 Boxing</a></li>
-            </ul>
-        </div>
-
-        <!-- Google Map -->
         <div class="footer-section map-section">
             <h4>Find Us</h4>
-            <iframe
-                src="https://www.google.com/maps?q=Lalitpur,+Nepal&output=embed"
-                allowfullscreen=""
-                loading="lazy">
-            </iframe>
+            <iframe src="<?= fitgym_esc($mapEmbedUrl) ?>" allowfullscreen="" loading="lazy"></iframe>
         </div>
-
     </div>
 
     <div class="footer-bottom">
-        <p>&copy; 2025 FitGym Center PVT LTD | All Rights Reserved</p>
+        <p><?= fitgym_esc($copyrightText) ?></p>
     </div>
 </footer>

@@ -12,13 +12,9 @@
   width: 90%;
   max-width: 1500px;
   margin: auto;
-
-  /* Ensures equal spacing */
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 24px;
-
-  /* Centers content properly */
   align-items: start;
 }
 
@@ -54,24 +50,21 @@
 }
 
 /* ============================
-   QUICK LINKS & CLASS LINKS
+   QUICK LINKS
 ============================ */
-.quick-links li,
-.classes-links li {
+.quick-links li {
   list-style: none;
   margin: 6px 0;
 }
 
-.quick-links a,
-.classes-links a {
+.quick-links a {
   text-decoration: none;
   color: #dcdcdc;
   font-size: 13px;
   transition: 0.3s ease;
 }
 
-.quick-links a:hover,
-.classes-links a:hover {
+.quick-links a:hover {
   color: #ff6c1a;
   margin-left: 5px;
 }
@@ -132,8 +125,7 @@
 
   .footer-section p,
   .contact-info li,
-  .quick-links a,
-  .classes-links a {
+  .quick-links a {
     font-size: 13px;
   }
 }

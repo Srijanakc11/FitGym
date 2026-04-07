@@ -1,5 +1,5 @@
 <?php
 require_once __DIR__ . '/_bootstrap.php';
 session_destroy();
-header('Location: /fitgym/php/login.php');
-exit;
+fitgym_clear_auth_session();
+fitgym_redirect('/php/login.php');

@@ -1,6 +1,6 @@
 <?php
-session_start();
-session_unset();
+require_once __DIR__ . '/auth_common.php';
+
+fitgym_clear_auth_session();
 session_destroy();
-header('Location: /fitgym/php/login.php');
-exit;
+fitgym_redirect('/php/login.php');

@@ -1,6 +1,5 @@
 <?php
-session_start();
-require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../auth_common.php';
 
 function esc($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');

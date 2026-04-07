@@ -1,53 +1,66 @@
 <?php
-// login.php
-session_start();
-require_once __DIR__ . "/database.php";
+require_once __DIR__ . '/auth_common.php';
+require_once __DIR__ . "/trainer_bootstrap.php";
 
 $loginError = "";
+$nextPath = trim((string)($_GET['next'] ?? $_POST['next'] ?? ''));
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($db_error) && $conn) {
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
+if (!function_exists('fitgym_login_redirect_target')) {
+    function fitgym_login_redirect_target(string $candidate): string
+    {
+        $candidate = trim($candidate);
+        if ($candidate === '' || str_contains($candidate, "\r") || str_contains($candidate, "\n")) {
+            return '';
+        }
 
-    // 1) Admin login
-    $stmt = $conn->prepare("SELECT id, name, password_hash, active FROM admin_users WHERE email = ? LIMIT 1");
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $admin = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+        $parts = parse_url($candidate);
+        if ($parts === false) {
+            return '';
+        }
+        if (isset($parts['scheme']) || isset($parts['host'])) {
+            return '';
+        }
+        if (!str_starts_with($candidate, '/')) {
+            return '';
+        }
 
-    if ($admin && (int)$admin['active'] === 1 && password_verify($password, $admin['password_hash'])) {
-        $_SESSION['admin_id'] = $admin['id'];
-        $_SESSION['admin_name'] = $admin['name'];
-        header('Location: /fitgym/php/admin/index.php');
-        exit;
+        return $candidate;
     }
-
-    // 2) Client login
-    $stmt = $conn->prepare("SELECT id, name, email, password, active FROM users WHERE email = ? LIMIT 1");
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    if ($user && (int)$user['active'] === 1 && password_verify($password, $user['password'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_email'] = $user['email'];
-        header('Location: /fitgym/php/client/dashboard.php');
-        exit;
-    }
-
-    $loginError = "Invalid credentials or account disabled.";
 }
 
-include("../includes/header.php");
+$nextPath = fitgym_login_redirect_target($nextPath);
+
+if (fitgym_current_role() !== null) {
+    fitgym_redirect(fitgym_post_login_target(fitgym_current_role(), $nextPath));
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($db_error) && $conn) {
+    $identifier = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $account = fitgym_get_account_by_login($identifier);
+
+    if (!$account || (int)($account['active'] ?? 0) !== 1) {
+        $loginError = "Invalid credentials or account disabled.";
+    } elseif (($account['role'] ?? '') === 'trainer' && ($account['qualification_status'] ?? 'pending') !== 'verified') {
+        $loginError = "Trainer account is not verified yet.";
+    } elseif (!password_verify($password, (string)($account['password_hash'] ?? ''))) {
+        $loginError = "Invalid credentials or account disabled.";
+    } else {
+        $role = (string)($account['role'] ?? 'client');
+        $email = (string)($account['email'] ?? '');
+        fitgym_login_user($role, (int)$account['id'], (string)$account['name'], $email);
+        fitgym_update_account_login_timestamp((int)$account['id']);
+        fitgym_redirect(fitgym_post_login_target($role, $nextPath));
+    }
+}
+
+include __DIR__ . "/header.php";
 ?>
 
-<link rel="stylesheet" href="/fitgym/css/login.css">
-<link rel="stylesheet" href="/fitgym/css/header.css">
-<link rel="stylesheet" href="/fitgym/css/footer.css">
-<link rel="stylesheet" href="../css/index.css">
+<link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/login.css')) ?>">
+<link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/header.css')) ?>">
+<link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/footer.css')) ?>">
+<link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/index.css')) ?>">
 
 <main class="page-content">
 
@@ -60,11 +73,14 @@ include("../includes/header.php");
             </div>
         <?php endif; ?>
 
-        <form action="" method="POST" class="simple-login-form">
+        <form action="<?= fitgym_esc(fitgym_url('/php/login.php')) ?>" method="POST" class="simple-login-form">
+            <?php if ($nextPath !== ''): ?>
+                <input type="hidden" name="next" value="<?= fitgym_esc($nextPath) ?>">
+            <?php endif; ?>
             
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+                <label for="email">Email or Trainer ID</label>
+                <input type="text" id="email" name="email" required>
             </div>
 
             <div class="form-group">
@@ -82,12 +98,12 @@ include("../includes/header.php");
             <button type="submit" class="btn-submit">Login</button>
             
             <div class="form-footer">
-                <a href="#">Forgot Password?</a>
+                <a href="<?= fitgym_esc(fitgym_url('/php/forgot_password.php')) ?>">Forgot Password?</a>
             </div>
         </form>
 
         <p class="signup-link">
-            New here? <a href="signup.php">Create an account</a>
+            New here? <a href="<?= fitgym_esc(fitgym_url('/php/signup.php') . ($nextPath !== '' ? '?next=' . rawurlencode($nextPath) : '')) ?>">Create an account</a>
         </p>
     </div>
 
@@ -109,6 +125,4 @@ include("../includes/header.php");
     })();
 </script>
 
-<?php
-include("../includes/footer.php");
-?>
+<?php include __DIR__ . "/footer.php"; ?>
