@@ -1,6 +1,9 @@
 /* ==============================
    SIGNUP PAGE – FITGYM THEME (REDESIGN)
 ============================== */
+body {
+    font-family: 'Poppins', sans-serif;
+}
 
 /* Wrapper */
 .signup-wrapper {

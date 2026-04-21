@@ -618,9 +618,9 @@ if (!function_exists('fitgym_get_classes')) {
 
         if (isset($conn) && $conn instanceof mysqli) {
             $scheduleConfigSelect = $hasScheduleConfigColumn ? ', c.schedule_config' : '';
-            $imageSelect = $hasImagePathColumn ? ', c.image_path' : '';
-            $imageMimeSelect = $hasImageMimeColumn ? ', c.image_mime' : '';
-            $imageDataSelect = $hasImageDataColumn ? ', c.image_data' : '';
+            $imageSelect = ', c.image_path';
+            $imageMimeSelect = ', c.image_mime';
+            $imageDataSelect = ', c.image_data';
             $categorySelect = $hasCategoryColumn ? ', c.category' : '';
             $descriptionSelect = $hasDescriptionColumn ? ', c.description' : '';
             $intensityLevelSelect = $hasIntensityLevelColumn ? ', c.intensity_level' : '';
@@ -638,6 +638,7 @@ if (!function_exists('fitgym_get_classes')) {
             $kcalMinSelect = $hasKcalMinColumn ? ', c.kcal_min' : '';
             $kcalMaxSelect = $hasKcalMaxColumn ? ', c.kcal_max' : '';
             $tdeeMinSelect = $hasTdeeMinColumn ? ', c.tdee_min' : '';
+            $priceSelect = ', c.price';
             $tdeeMaxSelect = $hasTdeeMaxColumn ? ', c.tdee_max' : '';
             $durationMinutesSelect = $hasDurationMinutesColumn ? ', c.duration_minutes' : '';
             $recommendedFrequencySelect = $hasRecommendedFrequencyColumn ? ', c.recommended_frequency_per_week' : '';
@@ -664,7 +665,7 @@ if (!function_exists('fitgym_get_classes')) {
                 . $jointFriendlySelect
                 . $requiresEquipmentSelect
                 . $recommendationActiveSelect;
-            $sql = "SELECT c.id, c.slug, c.name, c.max_participants, c.trainer_account_id, c.weekly_schedule, c.active{$scheduleConfigSelect}{$imageSelect}{$imageMimeSelect}{$imageDataSelect}{$recommendationFieldsSelect},
+            $sql = "SELECT c.id, c.slug, c.name, c.max_participants, c.trainer_account_id, c.weekly_schedule, c.active{$scheduleConfigSelect}{$imageSelect}{$imageMimeSelect}{$imageDataSelect}{$recommendationFieldsSelect}{$priceSelect},
                            a.name AS trainer_name,
                            COALESCE(stats.total_bookings, 0) AS total_bookings,
                            COALESCE(stats.total_clients, 0) AS total_clients
@@ -691,8 +692,8 @@ if (!function_exists('fitgym_get_classes')) {
                     $uploadedImageMime = trim((string)($row['image_mime'] ?? ''));
                     $uploadedImageData = $row['image_data'] ?? null;
                     $image = $uploadedImage !== '' ? fitgym_url($uploadedImage) : ($imageMap[$slug] ?? fitgym_guess_class_image($slug, $name));
-                    if ($uploadedImageMime !== '' && is_string($uploadedImageData) && $uploadedImageData !== '') {
-                        $image = 'data:' . $uploadedImageMime . ';base64,' . base64_encode($uploadedImageData);
+                    if ($uploadedImageMime !== '' && $uploadedImageData !== null && $uploadedImageData !== '') {
+                        $image = 'data:' . $uploadedImageMime . ';base64,' . base64_encode((string)$uploadedImageData);
                     }
                     $classData = fitgym_normalize_class_row($row);
                     $classData['image'] = (string)$image;
@@ -822,6 +823,248 @@ if (!function_exists('fitgym_get_testimonials')) {
             ['stars' => '★★★★★', 'message' => 'Great environment and great trainers.', 'author' => 'Member'],
             ['stars' => '★★★★★', 'message' => 'Best gym experience in the city.', 'author' => 'Returning Member'],
         ]);
+    }
+}
+
+if (!function_exists('fitgym_ensure_notifications_table')) {
+    function fitgym_ensure_notifications_table(): void
+    {
+        static $ensured = false;
+        global $conn;
+        if ($ensured || !isset($conn) || !($conn instanceof mysqli)) return;
+        $ensured = true;
+
+        $sql = "CREATE TABLE IF NOT EXISTS `user_notifications` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `booking_id` INT NOT NULL,
+            `type` VARCHAR(50) NOT NULL,
+            `message` VARCHAR(255) NOT NULL,
+            `details` TEXT NOT NULL,
+            `is_read` TINYINT(1) DEFAULT 0,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX (`user_id`),
+            INDEX (`is_read`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $conn->query($sql);
+    }
+}
+
+if (!function_exists('fitgym_parse_class_start_time')) {
+    function fitgym_parse_class_start_time(string $date, string $timeSlot): ?int
+    {
+        $parts = explode('-', $timeSlot);
+        $startTimeStr = trim($parts[0]);
+        if (!preg_match('/[AP]M/i', $startTimeStr) && preg_match('/[AP]M/i', $timeSlot)) {
+            preg_match('/([AP]M)/i', $timeSlot, $m);
+            $startTimeStr .= ' ' . $m[1];
+        }
+        $timestamp = strtotime($date . ' ' . $startTimeStr);
+        return $timestamp !== false ? $timestamp : null;
+    }
+}
+
+if (!function_exists('fitgym_generate_class_reminders')) {
+    function fitgym_generate_class_reminders(int $userId): void
+    {
+        global $conn;
+        if (!isset($conn) || !($conn instanceof mysqli) || $userId <= 0) return;
+
+        fitgym_ensure_notifications_table();
+        $activeSql = fitgym_booking_active_sql('b');
+        
+        $sql = "SELECT b.id, b.class_name, b.trainer_name, b.preferred_date, b.time_slot, b.payment_status, b.status
+                FROM bookings b
+                WHERE b.email = (SELECT email FROM accounts WHERE id = ? LIMIT 1)
+                  AND b.preferred_date >= CURDATE()
+                  AND b.preferred_date <= DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+                  AND {$activeSql}";
+        
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) return;
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $bookings = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+        $stmt->close();
+
+        $now = time();
+        foreach ($bookings as $b) {
+            $startTime = fitgym_parse_class_start_time((string)$b['preferred_date'], (string)$b['time_slot']);
+            if (!$startTime) continue;
+
+            $diffMinutes = (int)round(($startTime - $now) / 60);
+            if ($diffMinutes <= 60 && $diffMinutes > 15) {
+                fitgym_create_reminder_if_not_exists($userId, (int)$b['id'], 'reminder_60', $b);
+            }
+            if ($diffMinutes <= 15 && $diffMinutes > -10) {
+                fitgym_create_reminder_if_not_exists($userId, (int)$b['id'], 'reminder_15', $b);
+            }
+        }
+    }
+}
+
+if (!function_exists('fitgym_create_reminder_if_not_exists')) {
+    function fitgym_create_reminder_if_not_exists(int $userId, int $bookingId, string $type, array $bookingData): void
+    {
+        global $conn;
+        $check = $conn->prepare("SELECT id FROM user_notifications WHERE user_id = ? AND booking_id = ? AND type = ? LIMIT 1");
+        $check->bind_param('iis', $userId, $bookingId, $type);
+        $check->execute();
+        if ($check->get_result()->fetch_assoc()) {
+            $check->close();
+            return;
+        }
+        $check->close();
+
+        $message = "Class Reminder: " . $bookingData['class_name'] . " starts in " . ($type === 'reminder_60' ? '1 hour' : '15 minutes') . "!";
+        $details = json_encode([
+            'title' => 'Upcoming Class: ' . $bookingData['class_name'],
+            'time' => $bookingData['time_slot'],
+            'date' => $bookingData['preferred_date'],
+            'trainer' => $bookingData['trainer_name'],
+            'status' => $bookingData['status'],
+            'payment' => $bookingData['payment_status']
+        ]);
+
+        $ins = $conn->prepare("INSERT INTO user_notifications (user_id, booking_id, type, message, details) VALUES (?, ?, ?, ?, ?)");
+        $ins->bind_param('iisss', $userId, $bookingId, $type, $message, $details);
+        $ins->execute();
+        $ins->close();
+    }
+}
+
+if (!function_exists('fitgym_create_booking_notification_for_trainer')) {
+    function fitgym_create_booking_notification_for_trainer(int $bookingId, string $trainerName, string $className, string $clientName, string $timeSlot, string $date): void
+    {
+        global $conn;
+        if (!isset($conn) || !($conn instanceof mysqli) || $trainerName === '' || $trainerName === 'TBA') return;
+
+        $stmt = $conn->prepare("SELECT id FROM accounts WHERE name = ? AND role = 'trainer' LIMIT 1");
+        if (!$stmt) return;
+        $stmt->bind_param('s', $trainerName);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) {
+            $trainerId = (int)$row['id'];
+            $message = "New Booking: " . $clientName . " for " . $className;
+            $details = json_encode([
+                'title' => 'New Booking: ' . $className,
+                'time' => $timeSlot,
+                'date' => $date,
+                'client' => $clientName
+            ]);
+            
+            fitgym_ensure_notifications_table();
+            $ins = $conn->prepare("INSERT INTO user_notifications (user_id, booking_id, type, message, details) VALUES (?, ?, 'new_booking', ?, ?)");
+            if ($ins) {
+                $ins->bind_param('iiss', $trainerId, $bookingId, $message, $details);
+                $ins->execute();
+                $ins->close();
+            }
+        }
+        $stmt->close();
+    }
+}
+
+if (!function_exists('fitgym_create_booking_status_notification_for_client')) {
+    function fitgym_create_booking_status_notification_for_client(array $bookingRow, string $status, string $actorName = 'Trainer', string $reason = ''): void
+    {
+        global $conn;
+        if (!isset($conn) || !($conn instanceof mysqli)) return;
+
+        $bookingId = (int)($bookingRow['id'] ?? 0);
+        $email = trim((string)($bookingRow['email'] ?? ''));
+        if ($bookingId <= 0 || $email === '') return;
+
+        $clientStmt = $conn->prepare("SELECT id, name FROM accounts WHERE email = ? AND role = 'client' LIMIT 1");
+        if (!$clientStmt) return;
+        $clientStmt->bind_param('s', $email);
+        $clientStmt->execute();
+        $clientRow = $clientStmt->get_result()->fetch_assoc();
+        $clientStmt->close();
+        if (!$clientRow) return;
+
+        $normalizedStatus = ucfirst(strtolower(trim($status)));
+        $className = trim((string)($bookingRow['class_name'] ?? 'your class'));
+        $timeSlot = trim((string)($bookingRow['time_slot'] ?? ''));
+        $date = trim((string)($bookingRow['preferred_date'] ?? ''));
+        $trainerName = trim((string)($bookingRow['trainer_name'] ?? $actorName));
+        $type = strtolower($normalizedStatus) === 'confirmed' ? 'booking_confirmed' : 'booking_cancelled';
+        $reason = trim($reason);
+        $message = $normalizedStatus === 'Confirmed'
+            ? $trainerName . ' confirmed your booking for ' . $className . '.'
+            : $trainerName . ' cancelled your booking for ' . $className . '.';
+        if ($normalizedStatus === 'Cancelled' && $reason !== '') {
+            $message .= ' Reason: ' . $reason;
+        }
+        $details = json_encode([
+            'title' => 'Booking ' . $normalizedStatus,
+            'class_name' => $className,
+            'date' => $date,
+            'time' => $timeSlot,
+            'trainer' => $trainerName,
+            'status' => $normalizedStatus,
+            'reason' => $reason,
+        ]);
+
+        fitgym_ensure_notifications_table();
+        $check = $conn->prepare("SELECT id FROM user_notifications WHERE user_id = ? AND booking_id = ? AND type = ? LIMIT 1");
+        if ($check) {
+            $clientId = (int)$clientRow['id'];
+            $check->bind_param('iis', $clientId, $bookingId, $type);
+            $check->execute();
+            $existing = $check->get_result()->fetch_assoc();
+            $check->close();
+            if ($existing) {
+                $update = $conn->prepare("UPDATE user_notifications SET message = ?, details = ?, is_read = 0, created_at = NOW() WHERE id = ?");
+                if ($update) {
+                    $notifId = (int)$existing['id'];
+                    $update->bind_param('ssi', $message, $details, $notifId);
+                    $update->execute();
+                    $update->close();
+                }
+                return;
+            }
+        }
+
+        $insert = $conn->prepare("INSERT INTO user_notifications (user_id, booking_id, type, message, details) VALUES (?, ?, ?, ?, ?)");
+        if ($insert) {
+            $clientId = (int)$clientRow['id'];
+            $insert->bind_param('iisss', $clientId, $bookingId, $type, $message, $details);
+            $insert->execute();
+            $insert->close();
+        }
+    }
+}
+
+if (!function_exists('fitgym_get_user_notifications')) {
+    function fitgym_get_user_notifications(int $userId): array
+    {
+        global $conn;
+        if (!isset($conn) || !($conn instanceof mysqli) || $userId <= 0) return [];
+
+        fitgym_ensure_notifications_table();
+        $sql = "SELECT id, message, details, is_read, created_at FROM user_notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) return [];
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        return $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+    }
+}
+
+if (!function_exists('fitgym_mark_notification_as_read')) {
+    function fitgym_mark_notification_as_read(int $notifId): void
+    {
+        global $conn;
+        if (!isset($conn) || !($conn instanceof mysqli)) return;
+        $stmt = $conn->prepare("UPDATE user_notifications SET is_read = 1 WHERE id = ?");
+        if (!$stmt) return;
+        $stmt->bind_param('i', $notifId);
+        $stmt->execute();
+        $stmt->close();
     }
 }
 

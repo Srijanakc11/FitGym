@@ -8,12 +8,7 @@ $hero = fitgym_block('home_hero', 'Welcome to ' . $siteName, 'Your journey towar
 $heroCtaLabel = fitgym_setting('home_hero_cta_label', 'Explore Classes');
 $heroCtaUrl = fitgym_setting('home_hero_cta_url', fitgym_url('/php/classes.php'));
 
-$featuredClassesPayload = fitgym_get_home_featured_classes(3);
-$recommendedClasses = (array)($featuredClassesPayload['classes'] ?? []);
-$featuredMode = (string)($featuredClassesPayload['mode'] ?? 'fallback');
-$featuredIntro = $featuredMode === 'popular'
-    ? 'Start with the top 3 classes our members pick most often and find the one that inspires your fitness journey.'
-    : 'Explore 3 strong classes with complete training profiles while new booking trends are still building.';
+
 
 $bmi = fitgym_block('home_bmi_intro', 'Discover Your Ideal Fitness Plan', 'Calculate your BMI and receive personalized class recommendations tailored to your fitness goals.');
 $bmiAssessment = fitgym_setting('home_bmi_assessment_title', 'Your Assessment');
@@ -37,41 +32,7 @@ $testimonials = fitgym_get_testimonials();
   </div>
 </section>
 
-<section class="featured-classes">
-  <div class="container">
-    <h2><?= fitgym_esc(fitgym_setting('home_featured_title', 'Most Recommended Classes')) ?></h2>
-    <p class="section-intro"><?= fitgym_esc($featuredIntro) ?></p>
 
-    <div class="class-list">
-      <?php foreach ($recommendedClasses as $index => $item): ?>
-        <?php
-        $title = (string)($item['title'] ?? '');
-        $slug = (string)($item['slug'] ?? '');
-        $url = (string)($item['url'] ?? ($slug !== '' ? fitgym_url('/php/class_inside.php') . '?class=' . rawurlencode($slug) : fitgym_url('/php/classes.php')));
-        $image = (string)($item['image'] ?? fitgym_url('/pictures/workout.jpg'));
-        $description = (string)($item['description'] ?? '');
-        $rank = $index + 1;
-        $totalBookings = (int)($item['total_bookings'] ?? 0);
-        if ($title === '') {
-            continue;
-        }
-        ?>
-        <div class="class-item">
-          <span class="pick-badge"><?= fitgym_esc($featuredMode === 'popular' ? 'Top ' . $rank . ' Pick' : 'Featured Class') ?></span>
-          <a href="<?= fitgym_esc($url) ?>">
-            <img src="<?= fitgym_esc($image) ?>" alt="<?= fitgym_esc($title) ?> Class" />
-          </a>
-          <h3><?= fitgym_esc($title) ?></h3>
-          <p><?= fitgym_esc($description) ?></p>
-          <?php if ($featuredMode === 'popular' && $totalBookings > 0): ?>
-            <p class="class-meta"><?= fitgym_esc((string)$totalBookings) ?> booking<?= $totalBookings === 1 ? '' : 's' ?> from members</p>
-          <?php endif; ?>
-          <a href="<?= fitgym_esc($url) ?>" class="class-link">View Class</a>
-        </div>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
 
 <section class="bmi-section">
   <div class="container">

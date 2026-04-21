@@ -236,6 +236,35 @@ if (!function_exists('fitgym_class_is_recommendation_ready')) {
 }
 
 if (!function_exists('fitgym_normalize_class_row')) {
+    function fitgym_class_price_rupees(array $classRow, int $fallback = 2000): int
+    {
+        $rawPrice = $classRow['price'] ?? null;
+
+        if (is_int($rawPrice) || is_float($rawPrice)) {
+            $numeric = (int)$rawPrice;
+            return $numeric > 0 ? $numeric : $fallback;
+        }
+
+        $text = trim((string)$rawPrice);
+        if ($text !== '' && preg_match('/(\d+(?:\.\d+)?)/', str_replace(',', '', $text), $matches)) {
+            $numeric = (int)round((float)$matches[1]);
+            if ($numeric > 0) {
+                return $numeric;
+            }
+        }
+
+        return $fallback;
+    }
+}
+
+if (!function_exists('fitgym_class_price_label')) {
+    function fitgym_class_price_label(array $classRow, int $fallback = 2000): string
+    {
+        return 'NPR ' . number_format(fitgym_class_price_rupees($classRow, $fallback));
+    }
+}
+
+if (!function_exists('fitgym_normalize_class_row')) {
     function fitgym_normalize_class_row(array $classRow): array
     {
         $normalized = $classRow;
@@ -258,6 +287,9 @@ if (!function_exists('fitgym_normalize_class_row')) {
         $normalized['title'] = $name;
         $normalized['class_name'] = $name;
         $normalized['slug'] = trim((string)($classRow['slug'] ?? ''));
+        $normalized['trainer_id'] = (int)($classRow['trainer_account_id'] ?? $classRow['trainer_id'] ?? 0);
+        $normalized['price'] = (string)fitgym_class_price_rupees($classRow);
+        $normalized['price_formatted'] = fitgym_class_price_label($classRow);
         $normalized['category'] = $category;
         $normalized['category_label'] = $category !== '' ? fitgym_labelize_token($category) : 'General';
         $normalized['description'] = trim((string)($classRow['description'] ?? ''));

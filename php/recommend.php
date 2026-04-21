@@ -261,6 +261,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $redirectPayload[$field] = $value;
     }
 
+    $accountId = (int)($_SESSION['auth_id'] ?? 0);
+    if (($_SESSION['auth_role'] ?? '') === 'client' && $accountId > 0) {
+        if (!function_exists('fitgym_save_user_fitness_profile')) {
+            require_once __DIR__ . '/auth_common.php';
+        }
+        fitgym_save_user_fitness_profile($accountId, $redirectPayload);
+        $_SESSION['profile_popup_dismissed'] = true;
+    }
+
     $query = http_build_query($redirectPayload);
     header('Location: ' . fitgym_url('/php/recommend.php') . ($query !== '' ? '?' . $query : ''));
     exit;

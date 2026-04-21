@@ -77,6 +77,7 @@ if (isset($conn) && $conn instanceof mysqli) {
             <a class="<?= $currentPage === 'dashboard.php' ? 'active' : '' ?>" href="<?= trainer_esc(fitgym_url('/php/trainer/dashboard.php')) ?>">Dashboard</a>
             <a class="<?= $currentPage === 'classes.php' ? 'active' : '' ?>" href="<?= trainer_esc(fitgym_url('/php/trainer/classes.php')) ?>">Assigned Classes</a>
             <a class="<?= $currentPage === 'members.php' ? 'active' : '' ?>" href="<?= trainer_esc(fitgym_url('/php/trainer/members.php')) ?>">Member List</a>
+            <a class="<?= $currentPage === 'trainers.php' ? 'active' : '' ?>" href="<?= trainer_esc(fitgym_url('/php/trainer/trainers.php')) ?>">Trainer Directory</a>
             <a href="<?= trainer_esc(fitgym_url('/php/trainer/logout.php')) ?>">Logout</a>
         </nav>
     </aside>
@@ -86,6 +87,7 @@ if (isset($conn) && $conn instanceof mysqli) {
                 <h1>Assigned Classes</h1>
                 <p>Classes currently assigned to you.</p>
             </div>
+            <?php include __DIR__ . '/partials/topbar_notif.php'; ?>
         </header>
         <main class="admin-content">
             <div class="card">

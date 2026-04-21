@@ -76,6 +76,35 @@ if (!function_exists('fitgym_table_exists')) {
     }
 }
 
+if (!function_exists('fitgym_bootstrap_fitness_profile_table')) {
+    function fitgym_bootstrap_fitness_profile_table(): void
+    {
+        global $conn;
+
+        if (!isset($conn) || !($conn instanceof mysqli)) {
+            return;
+        }
+
+        $conn->query(
+            "CREATE TABLE IF NOT EXISTS user_fitness_profiles (
+                account_id INT PRIMARY KEY,
+                age INT NULL,
+                gender VARCHAR(10) NULL,
+                height_cm FLOAT NULL,
+                weight_kg FLOAT NULL,
+                activity VARCHAR(20) NULL,
+                goal VARCHAR(30) NULL,
+                training_days_per_week INT NULL,
+                fitness_level VARCHAR(20) NULL,
+                joint_pain VARCHAR(5) NULL,
+                duration_preference INT NULL,
+                profile_completed TINYINT(1) NOT NULL DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )"
+        );
+    }
+}
+
 if (!function_exists('fitgym_bootstrap_accounts')) {
     function fitgym_bootstrap_accounts(): void
     {
@@ -127,6 +156,7 @@ if (!function_exists('fitgym_bootstrap_accounts')) {
         fitgym_sync_accounts_from_trainers();
         fitgym_backfill_class_trainer_accounts();
         fitgym_ensure_default_admin_account();
+        fitgym_bootstrap_fitness_profile_table();
     }
 }
 
@@ -709,5 +739,104 @@ if (!function_exists('fitgym_require_role')) {
         }
 
         fitgym_redirect('/php/login.php');
+    }
+}
+
+if (!function_exists('fitgym_get_user_fitness_profile')) {
+    function fitgym_get_user_fitness_profile(int $accountId): ?array
+    {
+        global $conn;
+
+        if ($accountId <= 0 || !isset($conn) || !($conn instanceof mysqli)) {
+            return null;
+        }
+
+        $stmt = $conn->prepare(
+            "SELECT * FROM user_fitness_profiles WHERE account_id = ? LIMIT 1"
+        );
+        if (!$stmt) {
+            return null;
+        }
+        $stmt->bind_param('i', $accountId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $row ?: null;
+    }
+}
+
+if (!function_exists('fitgym_save_user_fitness_profile')) {
+    function fitgym_save_user_fitness_profile(int $accountId, array $data): bool
+    {
+        global $conn;
+
+        if ($accountId <= 0 || !isset($conn) || !($conn instanceof mysqli)) {
+            return false;
+        }
+
+        $age                   = isset($data['age']) && $data['age'] !== '' ? (int)$data['age'] : null;
+        $gender                = isset($data['gender']) ? trim((string)$data['gender']) : null;
+        $heightCm              = isset($data['height_cm']) && $data['height_cm'] !== '' ? (float)$data['height_cm'] : null;
+        $weightKg              = isset($data['weight_kg']) && $data['weight_kg'] !== '' ? (float)$data['weight_kg'] : null;
+        $activity              = isset($data['activity']) ? trim((string)$data['activity']) : null;
+        $goal                  = isset($data['goal']) ? trim((string)$data['goal']) : null;
+        $trainingDays          = isset($data['training_days_per_week']) && $data['training_days_per_week'] !== '' ? (int)$data['training_days_per_week'] : null;
+        $fitnessLevel          = isset($data['fitness_level']) ? trim((string)$data['fitness_level']) : null;
+        $jointPain             = isset($data['joint_pain']) ? trim((string)$data['joint_pain']) : null;
+        $durationPreference    = isset($data['duration_preference']) && $data['duration_preference'] !== '' ? (int)$data['duration_preference'] : null;
+        $profileCompleted      = 1;
+
+        $stmt = $conn->prepare(
+            "INSERT INTO user_fitness_profiles
+                (account_id, age, gender, height_cm, weight_kg, activity, goal,
+                 training_days_per_week, fitness_level, joint_pain, duration_preference, profile_completed)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+             ON DUPLICATE KEY UPDATE
+                age = VALUES(age),
+                gender = VALUES(gender),
+                height_cm = VALUES(height_cm),
+                weight_kg = VALUES(weight_kg),
+                activity = VALUES(activity),
+                goal = VALUES(goal),
+                training_days_per_week = VALUES(training_days_per_week),
+                fitness_level = VALUES(fitness_level),
+                joint_pain = VALUES(joint_pain),
+                duration_preference = VALUES(duration_preference),
+                profile_completed = 1"
+        );
+
+        if (!$stmt) {
+            return false;
+        }
+
+        $stmt->bind_param(
+            'iisddssissi',
+            $accountId,
+            $age,
+            $gender,
+            $heightCm,
+            $weightKg,
+            $activity,
+            $goal,
+            $trainingDays,
+            $fitnessLevel,
+            $jointPain,
+            $durationPreference
+        );
+
+        $ok = $stmt->execute();
+        $stmt->close();
+
+        if ($ok && $gender !== null && $gender !== '') {
+            $updateAccounts = $conn->prepare("UPDATE accounts SET gender = ? WHERE id = ? AND (gender IS NULL OR gender = '')");
+            if ($updateAccounts) {
+                $updateAccounts->bind_param('si', $gender, $accountId);
+                $updateAccounts->execute();
+                $updateAccounts->close();
+            }
+        }
+
+        return $ok;
     }
 }

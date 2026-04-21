@@ -6,6 +6,13 @@ $activeBookingWhere = fitgym_booking_active_sql();
 
 $popularClasses = $conn ? $conn->query("SELECT class_name, COUNT(*) AS total FROM bookings WHERE {$activeBookingWhere} GROUP BY class_name ORDER BY total DESC LIMIT 5") : false;
 $trainerPerformance = $conn ? $conn->query("SELECT trainer_name, COUNT(*) AS total FROM bookings WHERE {$activeBookingWhere} GROUP BY trainer_name ORDER BY total DESC LIMIT 5") : false;
+$estimatedRevenue = 0;
+if ($conn && function_exists('fitgym_table_has_column') && fitgym_table_has_column('bookings', 'payment_amount_paisa')) {
+    $revenueResult = $conn->query("SELECT COALESCE(SUM(payment_amount_paisa), 0) AS total FROM bookings WHERE {$activeBookingWhere}");
+    if ($revenueResult) {
+        $estimatedRevenue = (int)round(((int)($revenueResult->fetch_assoc()['total'] ?? 0)) / 100);
+    }
+}
 ?>
 
 <h2>Reports & Analytics</h2>
@@ -13,7 +20,7 @@ $trainerPerformance = $conn ? $conn->query("SELECT trainer_name, COUNT(*) AS tot
     <div class="card"><h3>User Growth</h3><strong><?= $conn ? esc($conn->query("SELECT COUNT(*) AS c FROM accounts WHERE role = 'client' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)")->fetch_assoc()['c']) : 0 ?></strong><div class="muted">Last 30 days</div></div>
     <div class="card"><h3>Bookings (7d)</h3><strong><?= $conn ? esc($conn->query("SELECT COUNT(*) AS c FROM bookings WHERE preferred_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND {$activeBookingWhere}")->fetch_assoc()['c']) : 0 ?></strong></div>
     <div class="card"><h3>Bookings (30d)</h3><strong><?= $conn ? esc($conn->query("SELECT COUNT(*) AS c FROM bookings WHERE preferred_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND {$activeBookingWhere}")->fetch_assoc()['c']) : 0 ?></strong></div>
-    <div class="card"><h3>Revenue (Est.)</h3><strong>NPR <?= $conn ? esc($conn->query("SELECT COUNT(*) AS c FROM bookings")->fetch_assoc()['c'] * 2000) : 0 ?></strong></div>
+    <div class="card"><h3>Revenue (Est.)</h3><strong>NPR <?= esc(number_format($estimatedRevenue)) ?></strong><div class="muted">Based on active booking amounts</div></div>
 </div>
 
 <div class="card">

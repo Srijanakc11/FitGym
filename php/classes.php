@@ -66,13 +66,6 @@ $recoBtnUrl = fitgym_setting('classes_recommend_cta_url', fitgym_url('/php/recom
             <p class="lead"><?= fitgym_esc($pageHeader['body']) ?></p>
         </section>
 
-        <section class="recommend-teaser simple">
-            <div class="container">
-                <h2><?= fitgym_esc($recoTeaser['title']) ?></h2>
-                <p><?= fitgym_esc($recoTeaser['body']) ?></p>
-                <a href="<?= fitgym_esc($recoBtnUrl) ?>" class="btn"><?= fitgym_esc($recoBtnLabel) ?></a>
-            </div>
-        </section>
 
         <section class="class-controls" style="margin-top:15px;">
             <div class="container">
@@ -106,6 +99,7 @@ $recoBtnUrl = fitgym_setting('classes_recommend_cta_url', fitgym_url('/php/recom
                                 <h3><?= fitgym_esc((string)$c['title']) ?></h3>
                                 <p class="category"><?= fitgym_esc((string)($c['category_label'] ?? $c['category'])) ?></p>
                                 <p class="desc"><?= fitgym_esc((string)$c['description']) ?></p>
+                                <p class="desc price-tag"><strong>Price:</strong> <?= fitgym_esc((string)$c['price_formatted']) ?></p>
                                 <p class="desc"><?= fitgym_esc((string)($c['total_clients'] ?? 0)) ?> users booked this class</p>
                                 <span class="view-btn">View Details</span>
                             </div>

@@ -66,7 +66,7 @@ $fallbackClasses = [
         'trainer' => 'Ram Tamang',
         'location' => 'Hall A',
         'duration_minutes' => 60,
-        'price' => 'NPR 2000',
+        'price' => 'NPR 0',
         'max_participants' => 20,
         'schedule_slots' => [
             ['day' => 'Mon', 'time' => '6:00-7:00 AM'],
@@ -100,7 +100,7 @@ foreach (fitgym_get_classes() as $item) {
         'trainer' => (string)($item['trainer'] ?? 'TBA'),
         'location' => (string)($item['location'] ?? 'Main Studio'),
         'duration_minutes' => (int)($item['duration_minutes'] ?? $item['duration_min'] ?? 45),
-        'price' => 'NPR 2000',
+        'price' => (string)($item['price'] ?? '0'),
         'max_participants' => max(1, (int)($item['max_participants'] ?? 20)),
         'schedule_slots' => (array)($item['schedule_slots'] ?? []),
     ];
@@ -428,6 +428,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($stmt->execute()) {
                 $bookingId = (int)$stmt->insert_id;
+                
+                fitgym_create_booking_notification_for_trainer(
+                    $bookingId,
+                    $selectedTrainer,
+                    $selectedClass['title'],
+                    $fullName,
+                    $timeSlot,
+                    $preferredDate
+                );
 
                 if ($paymentMethod === 'khalti') {
                     $bookingPayload = [
@@ -540,6 +549,7 @@ $classSummaryTags = array_values(array_filter([
     <link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/footer.css')) ?>">
     <link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/index.css')) ?>">
     <link rel="stylesheet" href="<?= fitgym_esc(fitgym_asset_url('/css/booking.css')) ?>">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 <?php include "header.php"; ?>
@@ -765,7 +775,7 @@ $classSummaryTags = array_values(array_filter([
                         <a class="secondary-btn" href="<?= fitgym_esc(fitgym_url('/php/classes.php')) ?>">Cancel</a>
                     </div>
 
-                    <p id="successMessage" class="success-message <?= $success ? 'show' : '' ?>" role="status" aria-live="polite">
+                    <p id="successMessage" class="success-message <?= $success ? 'show' : '' ?>" role="status" aria-live="polite" style="display:none;">
                         <?= htmlspecialchars($successMessage !== '' ? $successMessage : ('Your ' . $selectedClass['title'] . ' class has been successfully booked!')) ?>
                     </p>
                 </form>
@@ -940,6 +950,17 @@ $classSummaryTags = array_values(array_filter([
             errorBox.classList.remove('show');
         }
     });
+
+    // SweetAlert Success Message
+    <?php if ($success): ?>
+    Swal.fire({
+        title: 'Booking Successful!',
+        text: <?= json_encode($successMessage !== '' ? $successMessage : ('Your ' . $selectedClass['title'] . ' class has been successfully booked!')) ?>,
+        icon: 'success',
+        confirmButtonColor: '#ff6c1a',
+        confirmButtonText: 'Great!'
+    });
+    <?php endif; ?>
 </script>
 </body>
 </html>

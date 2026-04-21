@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile | FitGym</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/pictures/favicon.png?v=1775054061">
+    <link rel="stylesheet" href="/css/header.css?v=1775560106">
+    <link rel="stylesheet" href="/css/footer.css?v=1775558768">
+    <link rel="stylesheet" href="/css/index.css?v=1775558746">
+    <link rel="stylesheet" href="/css/client.css?v=1775558772">
+</head>
+<body>
+
+Warning: include(../header.php): Failed to open stream: No such file or directory in /Applications/XAMPP/xamppfiles/htdocs/fitgym/php/client/dashboard.php on line 304
+
+Warning: include(): Failed opening '../header.php' for inclusion (include_path='.:/Applications/XAMPP/xamppfiles/lib/php') in /Applications/XAMPP/xamppfiles/htdocs/fitgym/php/client/dashboard.php on line 304
+
+<main class="client-page">
+    <section class="client-hero">
+        <div>
+            <p class="eyebrow">Member profile</p>
+            <h1>My Profile</h1>
+            <p>Member, review your account details, bookings, and payment information in one place.</p>
+        </div>
+        <div class="hero-actions">
+            <a class="btn" href="/php/classes.php">Browse Classes</a>
+        </div>
+    </section>
+
+    
+        <section class="client-rec-section">
+        <div class="client-rec-header">
+            <div>
+                <p class="eyebrow">Based on your profile</p>
+                <h2>Recommended Classes</h2>
+            </div>
+            <a href="/php/recommend.php" class="btn secondary">Full Planner</a>
+        </div>
+        <div class="client-rec-grid">
+                                            <div class="client-rec-card">
+                    <div class="client-rec-img-wrap">
+                        <img src="/pictures/workout.jpg" alt="Strength Foundations">
+                        <span class="client-rec-rank">#1</span>
+                    </div>
+                    <div class="client-rec-body">
+                        <div class="client-rec-meta">
+                            <span>Strength</span>
+                            <span>Beginner</span>
+                            <span>Medium intensity</span>
+                        </div>
+                        <h3>Strength Foundations</h3>
+                                                    <p>Foundational resistance training class centered on safe lifting patterns, control, and progressive …</p>
+                                                <div class="client-rec-foot">
+                            <span class="client-rec-score">82% match</span>
+                            <a class="btn small" href="/php/class_inside.php?class=strength-foundations">View Class</a>
+                        </div>
+                    </div>
+                </div>
+                                            <div class="client-rec-card">
+                    <div class="client-rec-img-wrap">
+                        <img src="/pictures/workout.jpg" alt="Kettlebell Conditioning">
+                        <span class="client-rec-rank">#2</span>
+                    </div>
+                    <div class="client-rec-body">
+                        <div class="client-rec-meta">
+                            <span>Strength</span>
+                            <span>Intermediate</span>
+                            <span>Medium intensity</span>
+                        </div>
+                        <h3>Kettlebell Conditioning</h3>
+                                                    <p>Strength-endurance training using kettlebells for posterior-chain work, conditioning, and controlle…</p>
+                                                <div class="client-rec-foot">
+                            <span class="client-rec-score">80% match</span>
+                            <a class="btn small" href="/php/class_inside.php?class=kettlebell-conditioning">View Class</a>
+                        </div>
+                    </div>
+                </div>
+                                            <div class="client-rec-card">
+                    <div class="client-rec-img-wrap">
+                        <img src="/pictures/workout.jpg" alt="Strength Build">
+                        <span class="client-rec-rank">#3</span>
+                    </div>
+                    <div class="client-rec-body">
+                        <div class="client-rec-meta">
+                            <span>Strength</span>
+                            <span>Intermediate</span>
+                            <span>High intensity</span>
+                        </div>
+                        <h3>Strength Build</h3>
+                                                    <p>Compound strength sessions for members ready for heavier resistance work and muscle-building progre…</p>
+                                                <div class="client-rec-foot">
+                            <span class="client-rec-score">75% match</span>
+                            <a class="btn small" href="/php/class_inside.php?class=strength-build">View Class</a>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+    </section>
+    
+
+
+    <section class="client-grid">
+        <div class="client-card" id="account-card">
+            <div class="section-head">
+                <h3>Account Details</h3>
+                <button type="button" class="btn small secondary" onclick="toggleEdit('account')">Edit</button>
+            </div>
+            
+            <div class="view-mode-wrap" id="account-view">
+                <div class="profile-row"><span>Name</span><strong>Member</strong></div>
+                <div class="profile-row"><span>Email</span><strong></strong></div>
+                <div class="profile-row"><span>Phone</span><strong>-</strong></div>
+                <div class="profile-row"><span>Gender</span><strong>male</strong></div>
+            </div>
+
+            <form method="POST" class="profile-edit-form" id="account-edit">
+                <input type="hidden" name="action" value="update_account">
+                <label>Name <input type="text" name="name" value="Member" required></label>
+                <label>Phone <input type="text" name="phone" value=""></label>
+                <label>Gender 
+                    <select name="gender">
+                        <option value="Male" >Male</option>
+                        <option value="Female" >Female</option>
+                        <option value="Other" >Other</option>
+                    </select>
+                </label>
+                <div class="profile-form-actions">
+                    <button type="button" class="btn small secondary" onclick="toggleEdit('account')">Cancel</button>
+                    <button type="submit" class="btn small">Save</button>
+                </div>
+            </form>
+            <a class="link" href="/php/logout.php">Logout</a>
+        </div>
+
+        <div class="client-card" id="fitness-card">
+            <div class="section-head">
+                <h3>Fitness Profile</h3>
+                                    <button type="button" class="btn small secondary" onclick="toggleEdit('fitness')">Edit</button>
+                            </div>
+
+                        <div class="view-mode-wrap" id="fitness-view">
+                <div class="profile-row"><span>Age</span><strong>25</strong></div>
+                <div class="profile-row"><span>Height</span><strong>175 cm</strong></div>
+                <div class="profile-row"><span>Weight</span><strong>80 kg</strong></div>
+                <div class="profile-row"><span>Activity Level</span><strong>Moderate</strong></div>
+                <div class="profile-row"><span>Goal</span><strong>Muscle Gain</strong></div>
+                <div class="profile-row"><span>Training Days</span><strong>4 days/week</strong></div>
+                
+                <form method="POST" style="margin-top: 14px;">
+                    <input type="hidden" name="action" value="delete_preferences">
+                    <button type="submit" class="btn small secondary" style="color: #b3261e; border-color: transparent;" onclick="return confirm('Are you sure you want to delete your fitness profile? Recommendations will be reset.');">Delete Profile</button>
+                </form>
+            </div>
+            
+            <form method="POST" class="profile-edit-form" id="fitness-edit">
+                <input type="hidden" name="action" value="update_preferences">
+                <label>Age <input type="number" name="age" min="14" max="100" value="25" required></label>
+                <label>Height (cm) <input type="number" step="0.1" name="height_cm" value="175" required></label>
+                <label>Weight (kg) <input type="number" step="0.1" name="weight_kg" value="80" required></label>
+                <label>Gender 
+                    <select name="gender" required>
+                        <option value="female" >Female</option>
+                        <option value="male" selected>Male</option>
+                    </select>
+                </label>
+                <label>Activity Level 
+                    <select name="activity" required>
+                        <option value="sedentary" >Sedentary</option>
+                        <option value="light" >Light</option>
+                        <option value="moderate" selected>Moderate</option>
+                        <option value="active" >Active</option>
+                        <option value="very_active" >Very Active</option>
+                    </select>
+                </label>
+                <label>Goal 
+                    <select name="goal" required>
+                        <option value="maintenance" >Maintenance</option>
+                        <option value="fat_loss" >Fat Loss</option>
+                        <option value="muscle_gain" selected>Muscle Gain</option>
+                    </select>
+                </label>
+                <label>Fitness Level
+                    <select name="fitness_level" required>
+                        <option value="beginner" >Beginner</option>
+                        <option value="intermediate" selected>Intermediate</option>
+                        <option value="advanced" >Advanced</option>
+                    </select>
+                </label>
+                <label>Training Days/Wk <input type="number" name="training_days_per_week" min="1" max="7" value="4" required></label>
+                <label>Joint Pain
+                    <select name="joint_pain" required>
+                        <option value="no" selected>No</option>
+                        <option value="yes" >Yes</option>
+                    </select>
+                </label>
+                <label>Duration (min) <input type="number" name="duration_preference" value="45"></label>
+                
+                <div class="profile-form-actions">
+                    <button type="button" class="btn small secondary" onclick="toggleEdit('fitness')">Cancel</button>
+                    <button type="submit" class="btn small">Save</button>
+                </div>
+            </form>
+                    </div>
+
+        <div class="client-card">
+            <div class="section-head">
+                <h3>My Bookings</h3>
+                <span class="booking-count">0 bookings</span>
+            </div>
+            <p class="booking-help">Bookings automatically expire 30 days after the class date. Each reservation shows its expiry date below.</p>
+
+                            <p class="muted">No bookings yet. Book a class to see it here.</p>
+                    </div>
+    </section>
+</main>
+
+
+Warning: include(../footer.php): Failed to open stream: No such file or directory in /Applications/XAMPP/xamppfiles/htdocs/fitgym/php/client/dashboard.php on line 604
+
+Warning: include(): Failed opening '../footer.php' for inclusion (include_path='.:/Applications/XAMPP/xamppfiles/lib/php') in /Applications/XAMPP/xamppfiles/htdocs/fitgym/php/client/dashboard.php on line 604
+
+<script>
+(() => {
+    const body = document.body;
+    const modals = Array.from(document.querySelectorAll('.booking-modal'));
+    const triggers = Array.from(document.querySelectorAll('.details-trigger'));
+
+    window.toggleEdit = function(idPrefix) {
+        const viewEl = document.getElementById(idPrefix + '-view');
+        const editEl = document.getElementById(idPrefix + '-edit');
+        if (!viewEl || !editEl) return;
+        
+        if (editEl.classList.contains('is-active')) {
+            editEl.classList.remove('is-active');
+            viewEl.classList.remove('is-hidden');
+        } else {
+            editEl.classList.add('is-active');
+            viewEl.classList.add('is-hidden');
+        }
+    };
+
+    if (modals.length === 0 || triggers.length === 0) {
+        return;
+    }
+
+    const closeModal = (modal) => {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        body.classList.remove('modal-open');
+    };
+
+    const openModal = (modal) => {
+        modals.forEach((item) => closeModal(item));
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        body.classList.add('modal-open');
+    };
+
+    triggers.forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+            const modalId = trigger.getAttribute('data-booking-modal');
+            if (!modalId) {
+                return;
+            }
+            const modal = document.getElementById(modalId);
+            if (!modal) {
+                return;
+            }
+            openModal(modal);
+        });
+    });
+
+    modals.forEach((modal) => {
+        modal.querySelectorAll('[data-close-modal]').forEach((button) => {
+            button.addEventListener('click', () => closeModal(modal));
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') {
+            return;
+        }
+        modals.forEach((modal) => closeModal(modal));
+    });
+})();
+</script>
+</body>
+</html>

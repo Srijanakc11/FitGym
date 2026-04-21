@@ -5,11 +5,11 @@
 */
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #333;
-    color:#fff; 
+    color: #fff;
 }
 
 header {
@@ -19,7 +19,7 @@ header {
 }
 
 h1 {
-    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
     font-size: 2.5rem;
     text-align: left;
     line-height: 1.5rem;
@@ -82,20 +82,20 @@ footer {
     justify-content: center;
     flex-direction: column;
     text-align: center;
-    color: white; 
+    color: white;
 }
 
-.hero > h1 {
+.hero>h1 {
     margin: 0;
     font-size: 4em;
     line-height: 1.2;
-    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
-.hero > p {
+.hero>p {
     font-size: 2.5em;
     line-height: 1.5;
-    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn {
@@ -121,37 +121,48 @@ footer {
 .featured-classes .class-list {
     display: flex;
     justify-content: space-around;
-    flex-wrap: nowrap; /* Prevent wrapping */
+    flex-wrap: nowrap;
+    /* Prevent wrapping */
 }
 
 .featured-classes .class-item {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center content horizontally */
+    align-items: center;
+    /* Center content horizontally */
     margin: 20px;
-    min-width: 200px; /* Adjust this value based on your design */
-    flex: 1; /* Allow items to grow and fill the space */
+    min-width: 200px;
+    /* Adjust this value based on your design */
+    flex: 1;
+    /* Allow items to grow and fill the space */
 }
 
 .featured-classes .class-item img {
     width: 100%;
-    max-width: 100%; /* Keep your images responsive */
+    max-width: 100%;
+    /* Keep your images responsive */
     height: auto;
-    border-radius: 50%; /* This will ensure images are always circular */
+    border-radius: 50%;
+    /* This will ensure images are always circular */
 }
 
 /* Align the text */
-.featured-classes h3, .featured-classes p {
-    align-self: start; /* Aligns text to the start of the flex container */
-    width: 100%; /* Ensures text alignment is consistent */
+.featured-classes h3,
+.featured-classes p {
+    align-self: start;
+    /* Aligns text to the start of the flex container */
+    width: 100%;
+    /* Ensures text alignment is consistent */
 }
 
 @media (max-width: 768px) {
     .featured-classes .class-list {
         flex-direction: column;
     }
+
     .featured-classes .class-item {
-        width: 100%; /* Full width on smaller screens */
+        width: 100%;
+        /* Full width on smaller screens */
     }
 }
 
@@ -160,12 +171,12 @@ footer {
     background-color: #f4f4f4;
     padding: 50px;
     text-align: center;
-    color:black;
+    color: black;
 }
 
-.testimonials > h2 {
-    text-align:center;
-    color:black;
+.testimonials>h2 {
+    text-align: center;
+    color: black;
 }
 
 footer {
@@ -185,7 +196,7 @@ footer {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    color: white; 
+    color: white;
 }
 
 .login-container {
@@ -216,11 +227,12 @@ footer {
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-top: 4px;
-    margin-left: auto; 
-    margin-right: auto; 
+    margin-left: auto;
+    margin-right: auto;
 }
-.form-group error{
-	color: red;
+
+.form-group error {
+    color: red;
     font-size: 12px;
 }
 
@@ -244,7 +256,8 @@ footer {
     background: #ff0000;
 }
 
-.link-forgot-password, .link-signup {
+.link-forgot-password,
+.link-signup {
     color: #ff0000;
     text-decoration: none;
     text-align: center;
@@ -260,17 +273,19 @@ footer {
     margin-top: 20px;
     text-align: center;
 }
-.signup-section > p{
+
+.signup-section>p {
     color: #ff0000;
     font-weight: bold;
-   
+
 }
+
 .background2 {
     background-image: url('../pictures/battle-ropes.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    height:100%;
+    height: 100%;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -288,7 +303,8 @@ footer {
     background: #fff;
     border-radius: 4px;
 }
-.login-container2 > h1 {
+
+.login-container2>h1 {
     color: #333;
     text-align: center;
 
@@ -312,10 +328,12 @@ footer {
     display: inline-block;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    box-sizing: border-box;
+    /* Include padding and border in the element's total width and height */
 }
 
-.submit-btn, .reset-btn {
+.submit-btn,
+.reset-btn {
     width: 100%;
     background-color: #ff0000;
     color: white;
@@ -338,9 +356,11 @@ footer {
 .reset-btn:hover {
     background-color: #e0e0e0;
 }
-.warning{
-	color: red;
+
+.warning {
+    color: red;
 }
+
 .input-error {
     border: 1px solid red;
 }
@@ -355,10 +375,12 @@ footer {
     background: #fff;
     border-radius: 4px;
 }
+
 .form-wrapper1 h2 {
-    color:#333;
+    color: #333;
     text-align: center;
 }
+
 .form-wrapper1 #submit-c {
     width: 100%;
     background-color: #ff0000;
@@ -369,31 +391,35 @@ footer {
     border-radius: 4px;
     cursor: pointer;
 }
+
 .form-wrapper1 .form-field {
-    color:#333;
+    color: #333;
     margin-top: 20px;
     margin-bottom: 20px;
 }
-    
-.form-wrapper1 .form-field > [type="text"],.form-field > input[type="email"],
-.form-wrapper1 .form-field > textarea,.form-field > select {
+
+.form-wrapper1 .form-field>[type="text"],
+.form-field>input[type="email"],
+.form-wrapper1 .form-field>textarea,
+.form-field>select {
     width: 95%;
     padding: 15px;
     margin-top: 8px;
     border-radius: 5px;
     border: 1px solid #e5e5e5;
     font-size: 16px;
-    font-family: Inter, sans-serif;
- }
+    font-family: 'Poppins', sans-serif;
+}
 
 .form-wrapper1 .success {
     color: green;
     font-weight: bold;
 }
 
-.warning{
-	color: red;
+.warning {
+    color: red;
 }
+
 .input-error {
     border: 1px solid red;
 }
@@ -401,44 +427,59 @@ footer {
 .login-container3 {
     width: 80%;
     padding: 20px;
-    margin: auto; /* This will center your container */
+    margin: auto;
+    /* This will center your container */
     background: #fff;
     border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: adds a shadow for some depth */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Optional: adds a shadow for some depth */
 }
 
 .login-container3 .form-group {
-    margin-bottom: 15px; /* Spacing between each form group */
+    margin-bottom: 15px;
+    /* Spacing between each form group */
 }
 
 .login-container3 .form-group label {
     display: block;
-    margin-bottom: 5px; /* Spacing between label and input/select */
+    margin-bottom: 5px;
+    /* Spacing between label and input/select */
 }
 
 .login-container3 .form-group input[type="text"],
 .login-container3 .form-group input[type="password"],
 .login-container3 .form-group select {
-    width: 100%; /* Full width */
-    padding: 10px; /* Padding inside the inputs/select */
-    border: 1px solid #ccc; /* Border color */
-    border-radius: 4px; /* Rounded borders */
+    width: 100%;
+    /* Full width */
+    padding: 10px;
+    /* Padding inside the inputs/select */
+    border: 1px solid #ccc;
+    /* Border color */
+    border-radius: 4px;
+    /* Rounded borders */
 }
 
 .login-container3 .btn-reserve {
-    background-color: #d9534f; /* Button background color */
-    color: white; /* Button text color */
-    padding: 10px 20px; /* Button padding */
+    background-color: #d9534f;
+    /* Button background color */
+    color: white;
+    /* Button text color */
+    padding: 10px 20px;
+    /* Button padding */
     border: none;
-    border-radius: 4px; /* Rounded borders */
+    border-radius: 4px;
+    /* Rounded borders */
     cursor: pointer;
     display: block;
-    width: 100%; /* Full width */
-    margin-top: 10px; /* Margin at the top of the button */
+    width: 100%;
+    /* Full width */
+    margin-top: 10px;
+    /* Margin at the top of the button */
 }
 
 .login-container3 .btn-reserve:hover {
-    background-color: #c9302c; /* Button hover state color */
+    background-color: #c9302c;
+    /* Button hover state color */
 }
 
 .login-container3 .link-forgot-password,
@@ -446,13 +487,16 @@ footer {
     display: block;
     text-align: center;
     margin-top: 10px;
-    color: #d9534f; /* Adjust the color as needed */
-    text-decoration: none; /* Removes underline from links */
+    color: #d9534f;
+    /* Adjust the color as needed */
+    text-decoration: none;
+    /* Removes underline from links */
 }
 
 .login-container3 .link-forgot-password:hover,
 .login-container3 .link-signup:hover {
-    text-decoration: underline; /* Underline on hover for links */
+    text-decoration: underline;
+    /* Underline on hover for links */
 }
 
 .login-container3.error {
@@ -464,6 +508,7 @@ footer {
     color: green;
     font-size: 16px;
 }
+
 /* Media query for devices with a width of up to 600px */
 @media screen and (max-width: 600px) {
     .navbar li {
@@ -472,11 +517,11 @@ footer {
         text-align: center;
     }
 
-    .hero > h1 {
+    .hero>h1 {
         font-size: 2.5em;
     }
 
-    .hero > p {
+    .hero>p {
         font-size: 1.5em;
     }
 
@@ -484,7 +529,8 @@ footer {
         flex-direction: column;
     }
 
-    .login-container, .login-container2 {
+    .login-container,
+    .login-container2 {
         width: 90%;
         margin-left: 5%;
         margin-right: 5%;
@@ -494,7 +540,9 @@ footer {
         width: calc(100% - 16px);
     }
 
-    .background, .background2,.form-wrapper1 {
+    .background,
+    .background2,
+    .form-wrapper1 {
         height: auto;
         padding-top: 50px;
         padding-bottom: 50px;
@@ -526,10 +574,10 @@ footer {
 
 .reservation-table tr:nth-child(even) {
     background-color: rgb(43, 36, 36)
-
 }
+
 .reservation-table tr:nth-child(odd) {
-    background-color: #373434; 
+    background-color: #373434;
 }
 
 .reservation-table tr:hover {

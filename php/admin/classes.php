@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/partials/header.php';
+require_once __DIR__ . '/../dynamic_content.php';
 require_once __DIR__ . '/../class_recommendation_helpers.php';
 
 $successMessage = '';
@@ -54,7 +55,15 @@ if (!function_exists('admin_class_schedule_rows_from_post')) {
             $endDay = trim((string)($endDays[$i] ?? ''));
             $time = trim((string)($times[$i] ?? ''));
 
-            if ($day === '' || $time === '') {
+            if ($day === '' && $time === '') {
+                continue;
+            }
+            if ($day === '') {
+                $errors[] = "Row " . ($i + 1) . ": Please select a day.";
+                continue;
+            }
+            if ($time === '') {
+                $errors[] = "Row " . ($i + 1) . ": Please select a time slot.";
                 continue;
             }
             if (!in_array($day, $allowedDays, true) || !in_array($time, $allowedTimes, true)) {
@@ -155,6 +164,7 @@ if (!function_exists('admin_class_form_defaults')) {
             'tdee_max' => '',
             'duration_minutes' => '45',
             'recommended_frequency_per_week' => '',
+            'price' => '0.00',
             'low_impact' => 0,
             'joint_friendly' => 0,
             'requires_equipment' => 0,
@@ -200,19 +210,23 @@ if (!function_exists('admin_class_clean_int_string')) {
         if ($value === null || $value === '') {
             return '';
         }
-        if (filter_var($value, FILTER_VALIDATE_INT) === false) {
-            return '';
-        }
+        $val = (int)$value;
+        if ($val < $min) $val = $min;
+        if ($max !== null && $val > $max) $val = $max;
+        return (string)$val;
+    }
+}
 
-        $value = (int)$value;
-        if ($value < $min) {
-            return '';
+if (!function_exists('admin_class_clean_decimal_string')) {
+    function admin_class_clean_decimal_string($value, float $min = 0, ?float $max = null): string
+    {
+        if ($value === null || $value === '') {
+            return '0.00';
         }
-        if ($max !== null && $value > $max) {
-            return '';
-        }
-
-        return (string)$value;
+        $val = (float)$value;
+        if ($val < $min) $val = $min;
+        if ($max !== null && $val > $max) $val = $max;
+        return number_format($val, 2, '.', '');
     }
 }
 
@@ -293,6 +307,237 @@ if (!function_exists('admin_class_normalize_slug')) {
     }
 }
 
+if (!function_exists('admin_class_fetch_trainers')) {
+    function admin_class_sync_legacy_trainers(mysqli $conn): void
+    {
+        if (!fitgym_table_exists('trainers')) {
+            return;
+        }
+
+        $columnMap = [
+            'name' => fitgym_table_has_column('trainers', 'name') ? 'name' : null,
+            'trainer_code' => fitgym_table_has_column('trainers', 'trainer_code')
+                ? 'trainer_code'
+                : (fitgym_table_has_column('trainers', 'login_code') ? 'login_code' : null),
+            'password_hash' => fitgym_table_has_column('trainers', 'password_hash') ? 'password_hash' : null,
+            'specialization' => fitgym_table_has_column('trainers', 'specialization') ? 'specialization' : null,
+            'experience_years' => fitgym_table_has_column('trainers', 'experience_years') ? 'experience_years' : null,
+            'image_path' => fitgym_table_has_column('trainers', 'image_path') ? 'image_path' : null,
+            'availability' => fitgym_table_has_column('trainers', 'availability') ? 'availability' : null,
+            'qualification' => fitgym_table_has_column('trainers', 'qualification') ? 'qualification' : null,
+            'qualification_status' => fitgym_table_has_column('trainers', 'qualification_status') ? 'qualification_status' : null,
+            'verified_at' => fitgym_table_has_column('trainers', 'verified_at') ? 'verified_at' : null,
+            'last_login_at' => fitgym_table_has_column('trainers', 'last_login_at') ? 'last_login_at' : null,
+            'active' => fitgym_table_has_column('trainers', 'active') ? 'active' : null,
+            'created_at' => fitgym_table_has_column('trainers', 'created_at') ? 'created_at' : null,
+        ];
+
+        if ($columnMap['name'] === null) {
+            return;
+        }
+
+        $selectParts = ['id', 'name'];
+        foreach ($columnMap as $alias => $column) {
+            if ($alias === 'name') {
+                continue;
+            }
+            if ($column !== null) {
+                $selectParts[] = $column . ' AS ' . $alias;
+            }
+        }
+
+        $result = $conn->query('SELECT ' . implode(', ', $selectParts) . ' FROM trainers');
+        if (!$result) {
+            return;
+        }
+
+        $stmt = $conn->prepare(
+            "INSERT INTO accounts
+            (role, name, email, login_code, password_hash, specialization, experience_years, image_path, availability,
+             qualification, qualification_status, verified_by_account_id, verified_at, last_login_at, active, legacy_source, legacy_id, created_at)
+            VALUES ('trainer', ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, 'trainers', ?, ?)
+            ON DUPLICATE KEY UPDATE
+                role = VALUES(role),
+                name = VALUES(name),
+                login_code = VALUES(login_code),
+                password_hash = VALUES(password_hash),
+                specialization = VALUES(specialization),
+                experience_years = VALUES(experience_years),
+                image_path = VALUES(image_path),
+                availability = VALUES(availability),
+                qualification = VALUES(qualification),
+                qualification_status = VALUES(qualification_status),
+                verified_at = VALUES(verified_at),
+                last_login_at = VALUES(last_login_at),
+                active = VALUES(active)"
+        );
+        if (!$stmt) {
+            $result->free();
+            return;
+        }
+
+        while ($row = $result->fetch_assoc()) {
+            $legacyId = (int)($row['id'] ?? 0);
+            if ($legacyId <= 0) {
+                continue;
+            }
+
+            $name = trim((string)($row['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $loginCode = trim((string)($row['trainer_code'] ?? ''));
+            if ($loginCode === '') {
+                $loginCode = 'TRN-LEGACY-' . $legacyId;
+            }
+
+            $passwordHash = trim((string)($row['password_hash'] ?? ''));
+            if ($passwordHash === '') {
+                $passwordHash = password_hash('trainer123', PASSWORD_DEFAULT);
+            }
+
+            $specialization = (string)($row['specialization'] ?? '');
+            $experienceYears = (int)($row['experience_years'] ?? 0);
+            $imagePath = (string)($row['image_path'] ?? '');
+            $availability = (string)($row['availability'] ?? '');
+            $qualification = (string)($row['qualification'] ?? '');
+            $qualificationStatus = trim((string)($row['qualification_status'] ?? 'verified'));
+            if ($qualificationStatus === '') {
+                $qualificationStatus = 'verified';
+            }
+            $verifiedAt = $row['verified_at'] ?? null;
+            $lastLoginAt = $row['last_login_at'] ?? null;
+            $active = isset($row['active']) ? (int)$row['active'] : 1;
+            $createdAt = $row['created_at'] ?? date('Y-m-d H:i:s');
+
+            $stmt->bind_param(
+                'ssssisssssisis',
+                $name,
+                $loginCode,
+                $passwordHash,
+                $specialization,
+                $experienceYears,
+                $imagePath,
+                $availability,
+                $qualification,
+                $qualificationStatus,
+                $verifiedAt,
+                $lastLoginAt,
+                $active,
+                $legacyId,
+                $createdAt
+            );
+            $stmt->execute();
+        }
+
+        $stmt->close();
+        $result->free();
+    }
+
+    function admin_class_fetch_trainers(mysqli $conn): array
+    {
+        $loadRows = static function () use ($conn): array {
+            $result = $conn->query(
+                "SELECT id, name, active,
+                        COALESCE(NULLIF(TRIM(qualification_status), ''), 'pending') AS qualification_status
+                 FROM accounts
+                 WHERE role = 'trainer'
+                 ORDER BY active DESC,
+                          CASE
+                              WHEN LOWER(COALESCE(qualification_status, '')) = 'verified' THEN 0
+                              ELSE 1
+                          END,
+                          name ASC"
+            );
+            if (!$result) {
+                return [];
+            }
+
+            $rows = $result->fetch_all(MYSQLI_ASSOC);
+            $result->free();
+
+            return $rows;
+        };
+
+        $rows = $loadRows();
+        if (!empty($rows)) {
+            return $rows;
+        }
+
+        admin_class_sync_legacy_trainers($conn);
+        return $loadRows();
+    }
+}
+
+if (!function_exists('admin_class_build_trainer_options')) {
+    function admin_class_build_trainer_options(array $trainerRows, int $selectedTrainerId = 0): array
+    {
+        $options = [];
+
+        foreach ($trainerRows as $trainerRow) {
+            $trainerId = (int)($trainerRow['id'] ?? 0);
+            $isActive = (int)($trainerRow['active'] ?? 0) === 1;
+            $isSelected = $selectedTrainerId > 0 && $trainerId === $selectedTrainerId;
+            if (!$isActive && !$isSelected) {
+                continue;
+            }
+
+            $status = strtolower(trim((string)($trainerRow['qualification_status'] ?? 'pending')));
+            if ($status === '') {
+                $status = 'pending';
+            }
+
+            $label = trim((string)($trainerRow['name'] ?? 'Trainer'));
+            if ($status !== 'verified') {
+                $label .= ' (' . ucfirst($status) . ')';
+            }
+            if (!$isActive) {
+                $label .= ' (Inactive)';
+            }
+
+            $trainerRow['option_label'] = $label;
+            $options[] = $trainerRow;
+        }
+
+        return $options;
+    }
+}
+
+if (!function_exists('admin_class_validate_trainer')) {
+    function admin_class_validate_trainer(mysqli $conn, int $trainerAccountId): ?string
+    {
+        if ($trainerAccountId <= 0) {
+            return 'Select a trainer for this class.';
+        }
+
+        $stmt = $conn->prepare(
+            "SELECT active
+             FROM accounts
+             WHERE id = ? AND role = 'trainer'
+             LIMIT 1"
+        );
+        if (!$stmt) {
+            return 'Unable to validate the selected trainer right now.';
+        }
+
+        $stmt->bind_param('i', $trainerAccountId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $trainer = $result ? $result->fetch_assoc() : null;
+        $stmt->close();
+
+        if (!$trainer) {
+            return 'Select a valid trainer for this class.';
+        }
+        if ((int)($trainer['active'] ?? 0) !== 1) {
+            return 'Selected trainer account is inactive.';
+        }
+
+        return null;
+    }
+}
+
 if (!function_exists('admin_class_form_payload')) {
     function admin_class_form_payload(array $source): array
     {
@@ -305,7 +550,8 @@ if (!function_exists('admin_class_form_payload')) {
             'category' => fitgym_normalize_text((string)($source['category'] ?? '')),
             'description' => admin_class_clean_text($source['description'] ?? '', 5000),
             'trainer_account_id' => (int)($source['trainer_account_id'] ?? $source['trainer_id'] ?? 0),
-            'max_participants' => (int)($source['max_participants'] ?? 20),
+            'max_participants' => admin_class_clean_int_string($source['max_participants'] ?? '', 1, 1000),
+            'price' => admin_class_clean_decimal_string($source['price'] ?? '', 0),
             'active' => admin_class_checkbox_from_source($source, 'active', 1),
             'intensity_level' => fitgym_normalize_intensity((string)($source['intensity_level'] ?? '')),
             'fitness_level' => fitgym_normalize_fitness_level((string)($source['fitness_level'] ?? '')),
@@ -324,7 +570,7 @@ if (!function_exists('admin_class_form_payload')) {
 }
 
 if (!function_exists('admin_class_validate_payload')) {
-    function admin_class_validate_payload(array $payload, array $scheduleRows, array $categoryOptions): array
+    function admin_class_validate_payload(mysqli $conn, array $payload, array $scheduleRows, array $categoryOptions, ?int $editingId = null): array
     {
         $errors = [];
 
@@ -333,21 +579,51 @@ if (!function_exists('admin_class_validate_payload')) {
         }
         if ($payload['slug'] === '') {
             $errors[] = 'Slug is required and may only use letters, numbers, and hyphens.';
+        } else {
+            // Slug uniqueness check
+            $stmt = $conn->prepare("SELECT id FROM classes_admin WHERE slug = ? AND id != ? LIMIT 1");
+            if ($stmt) {
+                $checkId = $editingId ?? 0;
+                $stmt->bind_param('si', $payload['slug'], $checkId);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                if ($res && $res->num_rows > 0) {
+                    $errors[] = 'This slug is already used by another class. Please choose a unique slug.';
+                }
+                $stmt->close();
+            }
         }
+
         if (!isset($categoryOptions[$payload['category']])) {
             $errors[] = 'Select a valid category.';
         }
         if ($payload['description'] === '') {
             $errors[] = 'Class description is required.';
         }
-        if ($payload['trainer_account_id'] <= 0) {
-            $errors[] = 'Assign a verified trainer to the class.';
+        $trainerError = admin_class_validate_trainer($conn, (int)$payload['trainer_account_id']);
+        if ($trainerError !== null) {
+            $errors[] = $trainerError;
         }
         if ($payload['max_participants'] <= 0) {
-            $errors[] = 'Max participants must be greater than zero.';
+            $errors[] = 'Max participants must be at least 1.';
         }
         if (empty($scheduleRows)) {
             $errors[] = 'Please add at least one regular class schedule.';
+        }
+
+        // Numeric checks
+        $numericFields = [
+            'calories_burn_min' => 'Min calories',
+            'calories_burn_max' => 'Max calories',
+            'tdee_min' => 'Min TDEE target',
+            'tdee_max' => 'Max TDEE target',
+            'duration_minutes' => 'Session duration',
+            'recommended_frequency_per_week' => 'Weekly frequency'
+        ];
+        foreach ($numericFields as $field => $label) {
+            if ($payload[$field] !== '' && (int)$payload[$field] < 0) {
+                $errors[] = "$label cannot be a negative number.";
+            }
         }
 
         if ($payload['calories_burn_min'] !== '' && $payload['calories_burn_max'] !== '' && (int)$payload['calories_burn_min'] > (int)$payload['calories_burn_max']) {
@@ -355,6 +631,12 @@ if (!function_exists('admin_class_validate_payload')) {
         }
         if ($payload['tdee_min'] !== '' && $payload['tdee_max'] !== '' && (int)$payload['tdee_min'] > (int)$payload['tdee_max']) {
             $errors[] = 'TDEE min cannot be greater than max.';
+        }
+        if ($payload['duration_minutes'] !== '' && (int)$payload['duration_minutes'] > 480) {
+            $errors[] = 'Class duration seems excessive (greater than 8 hours).';
+        }
+        if ($payload['recommended_frequency_per_week'] !== '' && (int)$payload['recommended_frequency_per_week'] > 7) {
+            $errors[] = 'Recommended frequency cannot exceed 7 days per week.';
         }
 
         if ((int)$payload['is_active'] === 1) {
@@ -365,6 +647,126 @@ if (!function_exists('admin_class_validate_payload')) {
         }
 
         return array_values(array_unique($errors));
+    }
+}
+
+if (!function_exists('admin_class_statement_error_message')) {
+    function admin_class_statement_error_message(mysqli_stmt $stmt, string $mode = 'save'): string
+    {
+        $prefix = $mode === 'update' ? 'Unable to update the class.' : 'Unable to save the class.';
+        $errno = (int)($stmt->errno ?? 0);
+        $error = trim((string)($stmt->error ?? ''));
+
+        if ($errno === 1062) {
+            return $prefix . ' The slug is already used by another class.';
+        }
+
+        if ($error !== '') {
+            return $prefix . ' Database error: ' . $error;
+        }
+
+        return $prefix . ' Please check the form data and database schema.';
+    }
+}
+
+if (!function_exists('admin_class_parse_size_to_bytes')) {
+    function admin_class_parse_size_to_bytes($size): int
+    {
+        $value = trim((string)$size);
+        if ($value === '') {
+            return 0;
+        }
+
+        $unit = strtolower(substr($value, -1));
+        $bytes = (float)$value;
+        if ($unit === 'g') {
+            $bytes *= 1024;
+        }
+        if ($unit === 'm' || $unit === 'g') {
+            $bytes *= 1024;
+        }
+        if ($unit === 'k' || $unit === 'm' || $unit === 'g') {
+            $bytes *= 1024;
+        }
+
+        return (int)round($bytes);
+    }
+}
+
+if (!function_exists('admin_class_image_upload_dir')) {
+    function admin_class_image_upload_dir(): string
+    {
+        return dirname(__DIR__, 2) . '/uploads/class-images';
+    }
+}
+
+if (!function_exists('admin_class_store_uploaded_image')) {
+    function admin_class_store_uploaded_image(array $file, string $mimeType): array
+    {
+        $extensionMap = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+        ];
+        $extension = $extensionMap[$mimeType] ?? 'bin';
+        $uploadDir = admin_class_image_upload_dir();
+
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            return [
+                'path' => null,
+                'error' => 'Unable to create the class image upload folder.',
+            ];
+        }
+
+        $filename = 'class-' . date('YmdHis') . '-' . bin2hex(random_bytes(8)) . '.' . $extension;
+        $targetPath = $uploadDir . '/' . $filename;
+
+        if (!move_uploaded_file((string)($file['tmp_name'] ?? ''), $targetPath)) {
+            return [
+                'path' => null,
+                'error' => 'Unable to move the uploaded image into storage.',
+            ];
+        }
+
+        return [
+            'path' => '/uploads/class-images/' . $filename,
+            'error' => null,
+        ];
+    }
+}
+
+if (!function_exists('admin_class_image_public_url')) {
+    function admin_class_image_public_url(array $classRow): string
+    {
+        $imagePath = trim((string)($classRow['image_path'] ?? ''));
+        $imageMime = trim((string)($classRow['image_mime'] ?? ''));
+        $imageData = $classRow['image_data'] ?? null;
+        $slug = trim((string)($classRow['slug'] ?? ''));
+        $name = trim((string)($classRow['name'] ?? $classRow['title'] ?? ''));
+
+        if ($imageMime !== '' && $imageData !== null && $imageData !== '') {
+            return 'data:' . $imageMime . ';base64,' . base64_encode((string)$imageData);
+        }
+        if ($imagePath !== '') {
+            return fitgym_url($imagePath);
+        }
+
+        return fitgym_guess_class_image($slug, $name);
+    }
+}
+
+if (!function_exists('admin_class_delete_uploaded_image')) {
+    function admin_class_delete_uploaded_image(string $imagePath): void
+    {
+        $imagePath = trim($imagePath);
+        if ($imagePath === '' || !str_starts_with($imagePath, '/uploads/class-images/')) {
+            return;
+        }
+
+        $absolutePath = dirname(__DIR__, 2) . str_replace('/', DIRECTORY_SEPARATOR, $imagePath);
+        if (is_file($absolutePath)) {
+            @unlink($absolutePath);
+        }
     }
 }
 
@@ -397,6 +799,7 @@ if (!function_exists('admin_class_ensure_schema')) {
             'joint_friendly' => "ALTER TABLE classes_admin ADD COLUMN joint_friendly TINYINT(1) NOT NULL DEFAULT 0 AFTER low_impact",
             'requires_equipment' => "ALTER TABLE classes_admin ADD COLUMN requires_equipment TINYINT(1) NOT NULL DEFAULT 0 AFTER joint_friendly",
             'is_active' => "ALTER TABLE classes_admin ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 0 AFTER requires_equipment",
+            'price' => "ALTER TABLE classes_admin ADD COLUMN price DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER max_participants",
         ];
 
         foreach ($columnSql as $column => $sql) {
@@ -410,22 +813,50 @@ if (!function_exists('admin_class_ensure_schema')) {
 if (!function_exists('admin_class_image_upload')) {
     function admin_class_image_upload(array $file): array
     {
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        $phpUploadLimit = admin_class_parse_size_to_bytes(ini_get('upload_max_filesize'));
+        $phpPostLimit = admin_class_parse_size_to_bytes(ini_get('post_max_size'));
+        $maxBytes = max($phpUploadLimit, $phpPostLimit);
+        if ($phpUploadLimit > 0 && $phpPostLimit > 0) {
+            $maxBytes = min($phpUploadLimit, $phpPostLimit);
+        } elseif ($phpUploadLimit > 0) {
+            $maxBytes = $phpUploadLimit;
+        } elseif ($phpPostLimit > 0) {
+            $maxBytes = $phpPostLimit;
+        }
+        if ($phpUploadLimit > 0) {
+            $maxBytes = $maxBytes > 0 ? min($maxBytes, $phpUploadLimit) : $phpUploadLimit;
+        }
         $result = [
             'replace' => false,
+            'path' => null,
             'mime' => null,
             'data' => null,
             'errors' => [],
         ];
 
-        if ((int)($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        $errorCode = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($errorCode === UPLOAD_ERR_NO_FILE) {
             return $result;
         }
 
         $result['replace'] = true;
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
-
-        if ((int)($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            $result['errors'][] = 'Image upload failed. Please try again.';
+        if ($errorCode !== UPLOAD_ERR_OK) {
+            switch ($errorCode) {
+                case UPLOAD_ERR_INI_SIZE:
+                case UPLOAD_ERR_FORM_SIZE:
+                    $result['errors'][] = 'The image file is too large for the current PHP upload limit (' . ini_get('upload_max_filesize') . ').';
+                    break;
+                case UPLOAD_ERR_PARTIAL:
+                    $result['errors'][] = 'The image was only partially uploaded. Please try again.';
+                    break;
+                case UPLOAD_ERR_NO_TMP_DIR:
+                case UPLOAD_ERR_CANT_WRITE:
+                    $result['errors'][] = 'Server error: Unable to save the uploaded image.';
+                    break;
+                default:
+                    $result['errors'][] = 'Image upload failed with error code ' . $errorCode . '. Please try again.';
+            }
             return $result;
         }
 
@@ -435,14 +866,19 @@ if (!function_exists('admin_class_image_upload')) {
             return $result;
         }
 
-        $binary = file_get_contents((string)$file['tmp_name']);
-        if ($binary === false) {
-            $result['errors'][] = 'Unable to read the uploaded image.';
+        $fileSize = (int)($file['size'] ?? 0);
+        if ($maxBytes > 0 && $fileSize > 0 && $fileSize > $maxBytes) {
+            $result['errors'][] = 'The image file exceeds the server upload limit of ' . ini_get('upload_max_filesize') . '.';
             return $result;
         }
 
         $result['mime'] = $mimeType;
-        $result['data'] = $binary;
+        $stored = admin_class_store_uploaded_image($file, $mimeType);
+        if ($stored['error'] !== null) {
+            $result['errors'][] = (string)$stored['error'];
+            return $result;
+        }
+        $result['path'] = (string)$stored['path'];
 
         return $result;
     }
@@ -479,6 +915,8 @@ if ($conn instanceof mysqli) {
     admin_class_ensure_schema($conn);
 }
 
+$initialTrainerRows = $conn ? admin_class_fetch_trainers($conn) : [];
+
 if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -494,7 +932,9 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $scheduleRows = $scheduleBuild['rows'];
         $errors = array_merge($errors, $scheduleBuild['errors']);
-        $errors = array_merge($errors, admin_class_validate_payload($payload, $scheduleRows, $categoryOptions));
+        
+        $editingId = ($action === 'update') ? (int)($_POST['id'] ?? 0) : null;
+        $errors = array_merge($errors, admin_class_validate_payload($conn, $payload, $scheduleRows, $categoryOptions, $editingId));
 
         $upload = admin_class_image_upload($_FILES['class_image'] ?? []);
         $errors = array_merge($errors, $upload['errors']);
@@ -507,13 +947,13 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($upload['replace']) {
                     $stmt = $conn->prepare(
                         "INSERT INTO classes_admin (
-                            name, slug, category, description, weekly_schedule, schedule_config, max_participants,
+                            name, slug, category, description, weekly_schedule, schedule_config, max_participants, price,
                             trainer_account_id, image_path, image_mime, image_data, active,
                             intensity_level, fitness_level, " . admin_class_goal_columns_sql() . ",
                             calories_burn_min, calories_burn_max, tdee_min, tdee_max, duration_minutes,
                             recommended_frequency_per_week, low_impact, joint_friendly, requires_equipment, is_active
                         ) VALUES (
-                            ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?,
+                            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?,
                             NULLIF(?, ''), NULLIF(?, ''), " . admin_class_goal_placeholders_sql() . ",
                             NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''),
                             NULLIF(?, ''), ?, ?, ?, ?
@@ -521,7 +961,7 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
                     if ($stmt) {
                         $stmt->bind_param(
-                            'ssssssiisbiss' . admin_class_goal_bind_types() . 'ssssssiiii',
+                            'ssssssisisiss' . admin_class_goal_bind_types() . 'ssssssiiii',
                             ...array_merge([
                                 $payload['name'],
                                 $payload['slug'],
@@ -530,9 +970,9 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $weeklySchedule,
                                 $scheduleConfig,
                                 $payload['max_participants'],
+                                $payload['price'],
                                 $payload['trainer_account_id'],
-                                $upload['mime'],
-                                $upload['data'],
+                                $upload['path'],
                                 $payload['active'],
                                 $payload['intensity_level'],
                                 $payload['fitness_level'],
@@ -549,25 +989,24 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $payload['is_active'],
                             ])
                         );
-                        $stmt->send_long_data(9, $upload['data']);
                     }
                 } else {
                     $stmt = $conn->prepare(
                         "INSERT INTO classes_admin (
-                            name, slug, category, description, weekly_schedule, schedule_config, max_participants,
+                            name, slug, category, description, weekly_schedule, schedule_config, max_participants, price,
                             trainer_account_id, active, intensity_level, fitness_level, " . admin_class_goal_columns_sql() . ",
                             calories_burn_min, calories_burn_max,
                             tdee_min, tdee_max, duration_minutes, recommended_frequency_per_week,
                             low_impact, joint_friendly, requires_equipment, is_active
                         ) VALUES (
-                            ?, ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), " . admin_class_goal_placeholders_sql() . ",
+                            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), " . admin_class_goal_placeholders_sql() . ",
                             NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''),
                             NULLIF(?, ''), ?, ?, ?, ?
                         )"
                     );
                     if ($stmt) {
                         $stmt->bind_param(
-                            'ssssssiiiss' . admin_class_goal_bind_types() . 'ssssssiiii',
+                            'ssssssisiiss' . admin_class_goal_bind_types() . 'ssssssiiii',
                             ...array_merge([
                                 $payload['name'],
                                 $payload['slug'],
@@ -576,6 +1015,7 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $weeklySchedule,
                                 $scheduleConfig,
                                 $payload['max_participants'],
+                                $payload['price'],
                                 $payload['trainer_account_id'],
                                 $payload['active'],
                                 $payload['intensity_level'],
@@ -601,7 +1041,10 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($stmt->execute()) {
                     $successMessage = 'Class added successfully.';
                 } else {
-                    $errors[] = 'Unable to save the class. Check that the slug is unique.';
+                    if (!empty($upload['path'])) {
+                        admin_class_delete_uploaded_image((string)$upload['path']);
+                    }
+                    $errors[] = admin_class_statement_error_message($stmt, 'save');
                 }
 
                 if (isset($stmt) && $stmt instanceof mysqli_stmt) {
@@ -618,7 +1061,7 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt = $conn->prepare(
                             "UPDATE classes_admin SET
                                 name = ?, slug = ?, category = ?, description = ?, weekly_schedule = ?, schedule_config = ?,
-                                max_participants = ?, trainer_account_id = ?, image_path = NULL, image_mime = ?, image_data = ?,
+                                max_participants = ?, price = ?, trainer_account_id = ?, image_path = ?, image_mime = NULL, image_data = NULL,
                                 active = ?, intensity_level = NULLIF(?, ''), fitness_level = NULLIF(?, ''),
                                 " . admin_class_goal_update_assignments_sql() . ",
                                 calories_burn_min = NULLIF(?, ''), calories_burn_max = NULLIF(?, ''), tdee_min = NULLIF(?, ''),
@@ -629,7 +1072,7 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         );
                         if ($stmt) {
                             $stmt->bind_param(
-                                'ssssssiisbiss' . admin_class_goal_bind_types() . 'ssssssiiiii',
+                                'ssssssisisiss' . admin_class_goal_bind_types() . 'ssssssiiiii',
                                 ...array_merge([
                                     $payload['name'],
                                     $payload['slug'],
@@ -638,9 +1081,9 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $weeklySchedule,
                                     $scheduleConfig,
                                     $payload['max_participants'],
+                                    $payload['price'],
                                     $payload['trainer_account_id'],
-                                    $upload['mime'],
-                                    $upload['data'],
+                                    $upload['path'],
                                     $payload['active'],
                                     $payload['intensity_level'],
                                     $payload['fitness_level'],
@@ -658,13 +1101,12 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $classId,
                                 ])
                             );
-                            $stmt->send_long_data(9, $upload['data']);
                         }
                     } else {
                         $stmt = $conn->prepare(
                             "UPDATE classes_admin SET
                                 name = ?, slug = ?, category = ?, description = ?, weekly_schedule = ?, schedule_config = ?,
-                                max_participants = ?, trainer_account_id = ?, active = ?,
+                                max_participants = ?, price = ?, trainer_account_id = ?, active = ?,
                                 intensity_level = NULLIF(?, ''), fitness_level = NULLIF(?, ''),
                                 " . admin_class_goal_update_assignments_sql() . ",
                                 calories_burn_min = NULLIF(?, ''), calories_burn_max = NULLIF(?, ''), tdee_min = NULLIF(?, ''),
@@ -675,7 +1117,7 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         );
                         if ($stmt) {
                             $stmt->bind_param(
-                                'ssssssiiiss' . admin_class_goal_bind_types() . 'ssssssiiiii',
+                                'ssssssisiiss' . admin_class_goal_bind_types() . 'ssssssiiiii',
                                 ...array_merge([
                                     $payload['name'],
                                     $payload['slug'],
@@ -684,6 +1126,7 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $weeklySchedule,
                                     $scheduleConfig,
                                     $payload['max_participants'],
+                                    $payload['price'],
                                     $payload['trainer_account_id'],
                                     $payload['active'],
                                     $payload['intensity_level'],
@@ -708,9 +1151,19 @@ if ($conn instanceof mysqli && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$stmt) {
                         $errors[] = 'Edit form is not fully configured yet.';
                     } elseif ($stmt->execute()) {
+                        if ($upload['replace']) {
+                            $oldImagePath = trim((string)($editClass['image_path'] ?? ''));
+                            $newImagePath = trim((string)($upload['path'] ?? ''));
+                            if ($oldImagePath !== '' && $oldImagePath !== $newImagePath) {
+                                admin_class_delete_uploaded_image($oldImagePath);
+                            }
+                        }
                         $successMessage = 'Class updated successfully.';
                     } else {
-                        $errors[] = 'Unable to update the class. Check that the slug is unique.';
+                        if (!empty($upload['path'])) {
+                            admin_class_delete_uploaded_image((string)$upload['path']);
+                        }
+                        $errors[] = admin_class_statement_error_message($stmt, 'update');
                     }
 
                     if (isset($stmt) && $stmt instanceof mysqli_stmt) {
@@ -762,16 +1215,20 @@ $classes = $conn ? $conn->query(
      ) stats ON stats.class_slug = c.slug
      ORDER BY c.created_at DESC"
 ) : false;
-$trainers = $conn ? $conn->query("SELECT id, name FROM accounts WHERE role = 'trainer' AND active = 1 AND qualification_status = 'verified' ORDER BY name ASC") : false;
+$trainerRows = $conn ? admin_class_fetch_trainers($conn) : [];
+if (empty($trainerRows) && !empty($initialTrainerRows)) {
+    $trainerRows = $initialTrainerRows;
+}
 
 $rawClassRows = $classes ? $classes->fetch_all(MYSQLI_ASSOC) : [];
 $classRows = [];
 foreach ($rawClassRows as $row) {
     $normalizedRow = fitgym_normalize_class_row($row);
-    $classRows[] = array_merge($row, $normalizedRow);
+    $classRows[] = array_merge($row, $normalizedRow, [
+        'image' => admin_class_image_public_url($row),
+    ]);
 }
 
-$trainerOptions = $trainers ? $trainers->fetch_all(MYSQLI_ASSOC) : [];
 $activePrograms = count(array_filter($classRows, static fn(array $row): bool => (int)($row['active'] ?? 0) === 1));
 $recommendablePrograms = count(array_filter($classRows, static fn(array $row): bool => (int)($row['is_active'] ?? 0) === 1));
 $readyPrograms = count(array_filter($classRows, static fn(array $row): bool => !empty($row['recommendation_ready'])));
@@ -798,6 +1255,7 @@ $editFormValues = $editClass ? array_merge(admin_class_form_defaults(), [
     'description' => (string)($editClass['description'] ?? ''),
     'trainer_account_id' => (int)($editClass['trainer_account_id'] ?? 0),
     'max_participants' => (int)($editClass['max_participants'] ?? 20),
+    'price' => admin_class_clean_decimal_string($editClass['price'] ?? '', 0),
     'active' => (int)($editClass['active'] ?? 1),
     'intensity_level' => (string)($editClass['intensity_level'] ?? ''),
     'fitness_level' => (string)($editClass['fitness_level'] ?? ''),
@@ -824,6 +1282,9 @@ if ($currentAction === 'update' && !empty($errors) && $editClass !== null && (in
 if (empty($editScheduleRows)) {
     $editScheduleRows = [['mode' => 'single', 'day' => '', 'end_day' => '', 'time' => '']];
 }
+
+$trainerOptions = admin_class_build_trainer_options($trainerRows, (int)($addFormValues['trainer_account_id'] ?? 0));
+$editTrainerOptions = admin_class_build_trainer_options($trainerRows, (int)($editFormValues['trainer_account_id'] ?? 0));
 ?>
 
 <div class="page-header-row">
@@ -900,12 +1361,15 @@ if (empty($editScheduleRows)) {
                     <select name="trainer_account_id" required>
                         <option value="">Select trainer</option>
                         <?php foreach ($trainerOptions as $trainer): ?>
-                            <option value="<?= esc($trainer['id']) ?>" <?= (int)$addFormValues['trainer_account_id'] === (int)$trainer['id'] ? 'selected' : '' ?>><?= esc($trainer['name']) ?></option>
+                            <option value="<?= esc($trainer['id']) ?>" <?= (int)$addFormValues['trainer_account_id'] === (int)$trainer['id'] ? 'selected' : '' ?>><?= esc($trainer['option_label']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>
                 <label>Max Participants
                     <input type="number" name="max_participants" min="1" value="<?= esc((string)$addFormValues['max_participants']) ?>" required>
+                </label>
+                <label>Class Price
+                    <input type="number" name="price" min="0" step="0.01" value="<?= esc((string)$addFormValues['price']) ?>" required>
                 </label>
                 <label>Visible to Users
                     <span class="checkbox-row"><input type="checkbox" name="active" value="1" <?= (int)$addFormValues['active'] === 1 ? 'checked' : '' ?>> Active class listing</span>
@@ -915,7 +1379,11 @@ if (empty($editScheduleRows)) {
                     <textarea name="description" rows="4" required><?= esc($addFormValues['description']) ?></textarea>
                 </label>
                 <label>Class Image
-                    <input type="file" name="class_image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                    <div class="custom-file-input">
+                        <input type="file" id="classImageCreate" name="class_image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-file-input>
+                        <label for="classImageCreate" class="custom-file-trigger">Choose File</label>
+                        <span class="custom-file-name" data-file-name>No file chosen</span>
+                    </div>
                     <small class="field-hint">Optional. JPG, PNG, and WEBP are supported.</small>
                 </label>
             </div>
@@ -1073,13 +1541,16 @@ if (empty($editScheduleRows)) {
                     <label>Trainer
                         <select name="trainer_account_id" required>
                             <option value="">Select trainer</option>
-                            <?php foreach ($trainerOptions as $trainer): ?>
-                                <option value="<?= esc($trainer['id']) ?>" <?= (int)$editFormValues['trainer_account_id'] === (int)$trainer['id'] ? 'selected' : '' ?>><?= esc($trainer['name']) ?></option>
+                            <?php foreach ($editTrainerOptions as $trainer): ?>
+                                <option value="<?= esc($trainer['id']) ?>" <?= (int)$editFormValues['trainer_account_id'] === (int)$trainer['id'] ? 'selected' : '' ?>><?= esc($trainer['option_label']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </label>
                     <label>Max Participants
                         <input type="number" name="max_participants" min="1" value="<?= esc((string)$editFormValues['max_participants']) ?>" required>
+                    </label>
+                    <label>Class Price
+                        <input type="number" name="price" min="0" step="0.01" value="<?= esc((string)$editFormValues['price']) ?>" required>
                     </label>
                     <label>Visible to Users
                         <span class="checkbox-row"><input type="checkbox" name="active" value="1" <?= (int)$editFormValues['active'] === 1 ? 'checked' : '' ?>> Active class listing</span>
@@ -1087,9 +1558,32 @@ if (empty($editScheduleRows)) {
                     <label class="full-span">Description
                         <textarea name="description" rows="4" required><?= esc($editFormValues['description']) ?></textarea>
                     </label>
+                    <label>Current Class Image
+                        <div class="current-image-preview" data-image-preview-container>
+                            <?php if (!empty($editClass['image'])): ?>
+                                <img src="<?= fitgym_esc($editClass['image']) ?>" alt="Current Class Image" data-image-preview style="max-width: 200px; border-radius: 8px; display: block; margin-top: 8px; border: 1px solid #ddd;">
+                                <div class="meta-list" style="margin-top: 5px;">
+                                    <?php if (!empty($editClass['image_data'])): ?>
+                                        <span class="badge success">Stored in Database</span>
+                                    <?php elseif (!empty($editClass['image_path'])): ?>
+                                        <span class="badge info">Path: <?= fitgym_esc($editClass['image_path']) ?></span>
+                                    <?php else: ?>
+                                        <span class="badge warning">Default Fallback</span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php else: ?>
+                                <img src="" alt="Current Class Image" data-image-preview style="max-width: 200px; border-radius: 8px; display: none; margin-top: 8px; border: 1px solid #ddd;">
+                                <p class="muted" data-image-empty>No image assigned.</p>
+                            <?php endif; ?>
+                        </div>
+                    </label>
                     <label>Replace Class Image
-                        <input type="file" name="class_image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                        <small class="field-hint">Leave blank to keep the current stored image.</small>
+                        <div class="custom-file-input">
+                            <input type="file" id="classImageEdit" name="class_image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-file-input data-preview-target="edit">
+                            <label for="classImageEdit" class="custom-file-trigger">Choose File</label>
+                            <span class="custom-file-name" data-file-name>No file chosen</span>
+                        </div>
+                        <small class="field-hint">Leave blank to keep the current image shown above.</small>
                     </label>
                 </div>
             </div>
@@ -1367,6 +1861,34 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.addEventListener('change', function (event) {
+        if (event.target.matches('[data-file-input]')) {
+            const wrapper = event.target.closest('.custom-file-input');
+            const nameLabel = wrapper ? wrapper.querySelector('[data-file-name]') : null;
+            if (nameLabel) {
+                const fileName = event.target.files && event.target.files.length > 0
+                    ? event.target.files[0].name
+                    : 'No file chosen';
+                nameLabel.textContent = fileName;
+            }
+            if (event.target.dataset.previewTarget === 'edit') {
+                const previewContainer = document.querySelector('[data-image-preview-container]');
+                const previewImage = previewContainer ? previewContainer.querySelector('[data-image-preview]') : null;
+                const emptyState = previewContainer ? previewContainer.querySelector('[data-image-empty]') : null;
+                const file = event.target.files && event.target.files.length > 0 ? event.target.files[0] : null;
+                if (previewImage && file) {
+                    const reader = new FileReader();
+                    reader.onload = function (loadEvent) {
+                        previewImage.src = String(loadEvent.target && loadEvent.target.result ? loadEvent.target.result : '');
+                        previewImage.style.display = 'block';
+                        if (emptyState) {
+                            emptyState.style.display = 'none';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            return;
+        }
         if (!event.target.classList.contains('schedule-mode')) return;
         syncScheduleRow(event.target.closest('.schedule-row'));
     });

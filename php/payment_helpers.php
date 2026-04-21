@@ -102,14 +102,6 @@ if (!function_exists('fitgym_bootstrap_booking_payment_columns')) {
             );
         }
 
-        if (fitgym_table_has_column('bookings', 'payment_amount_paisa')) {
-            $conn->query(
-                "UPDATE bookings
-                 SET payment_amount_paisa = 200000
-                 WHERE payment_amount_paisa IS NULL"
-            );
-        }
-
         if (function_exists('fitgym_sync_booking_expiry_statuses')) {
             fitgym_sync_booking_expiry_statuses();
         }
@@ -181,8 +173,8 @@ if (!function_exists('fitgym_parse_price_rupees')) {
             return max(10, $fallback);
         }
 
-        if (preg_match('/(\d[\d,]*)/', $text, $matches)) {
-            $numeric = (int)str_replace(',', '', $matches[1]);
+        if (preg_match('/(\d+(?:\.\d+)?)/', str_replace(',', '', $text), $matches)) {
+            $numeric = (int)round((float)$matches[1]);
             if ($numeric > 0) {
                 return $numeric;
             }

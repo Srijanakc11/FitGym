@@ -1,6 +1,9 @@
 /* ===============================
    CLASSES PAGE – PROFESSIONAL UI
 ================================ */
+body {
+  font-family: 'Poppins', sans-serif;
+}
 
 :root {
   --brand: #ff6c1a;
@@ -31,6 +34,7 @@
   max-width: 720px;
   margin: auto;
 }
+
 .view-btn {
   text-decoration: none;
   font-weight: 600;
